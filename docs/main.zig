@@ -44,7 +44,7 @@ fn connMyzql(allocator: std.mem.Allocator) !Conn {
         &.{
             .username = "root",   
             .password = "123456", 
-            .database = "zig_blog", 
+            .database = "zig_say", 
 
             .address =  std.net.Address.initIp4(.{ 192, 168, 56, 1 }, 3306),
         },
@@ -81,7 +81,7 @@ fn exampleSelect(c: *Conn, allocator: std.mem.Allocator) !void {
     { // Select
         const query =
             \\SELECT username, cookie
-            \\FROM blog_user
+            \\FROM say_user
         ;
         const prep_res = try c.prepare(allocator, query);
         defer prep_res.deinit(allocator);
@@ -106,7 +106,7 @@ fn exampleSelect(c: *Conn, allocator: std.mem.Allocator) !void {
 
 fn exampleInsert(c: *Conn, allocator: std.mem.Allocator) !void {
     { // Insert
-        const prep_res = try c.prepare(allocator, "INSERT INTO blog_user (username, cookie) VALUES (?, ?)");
+        const prep_res = try c.prepare(allocator, "INSERT INTO say_user (username, cookie) VALUES (?, ?)");
         defer prep_res.deinit(allocator);
         const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
         const params = .{
@@ -125,7 +125,7 @@ fn exampleInsert(c: *Conn, allocator: std.mem.Allocator) !void {
 
 fn exampleDelete(c: *Conn, allocator: std.mem.Allocator) !void {
     { // Insert
-        const prep_res = try c.prepare(allocator, "DELETE FROM blog_user WHERE id = ?");
+        const prep_res = try c.prepare(allocator, "DELETE FROM say_user WHERE id = ?");
         defer prep_res.deinit(allocator);
         const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
@@ -133,15 +133,15 @@ fn exampleDelete(c: *Conn, allocator: std.mem.Allocator) !void {
         const exe_res = try c.execute(&prep_stmt, param);
 
         const ok: OkPacket = try exe_res.expect(.ok); // expecting ok here because there's no rows returned
-        const last_insert_id: u64 = ok.last_insert_id;
-        std.debug.print("last_insert_id: {any}\n", .{last_insert_id});
+        const affected_rows: u64 = ok.affected_rows;
+        std.debug.print("affected_rows: {any}\n", .{affected_rows});
 
     }
 }
 
 fn exampleUpdate(c: *Conn, allocator: std.mem.Allocator) !void {
     { // Insert
-        const prep_res = try c.prepare(allocator, "UPDATE blog_user SET sign = ? WHERE id = ?");
+        const prep_res = try c.prepare(allocator, "UPDATE say_user SET sign = ? WHERE id = ?");
         defer prep_res.deinit(allocator);
         const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
@@ -149,8 +149,8 @@ fn exampleUpdate(c: *Conn, allocator: std.mem.Allocator) !void {
         const exe_res = try c.execute(&prep_stmt, param);
 
         const ok: OkPacket = try exe_res.expect(.ok); // expecting ok here because there's no rows returned
-        const last_insert_id: u64 = ok.last_insert_id;
-        std.debug.print("last_insert_id: {any}\n", .{last_insert_id});
+        const affected_rows: u64 = ok.affected_rows;
+        std.debug.print("affected_rows: {any}\n", .{affected_rows});
 
     }
 }
