@@ -73,34 +73,34 @@ test "query text protocol" {
             }
         }
     }
-    // { // Iterating over rows, collecting elements into []const ?[]const u8
-    //     const query_res = try c.queryRows("SELECT 3, 4, null, 6, 7");
-    //     const rows: ResultSet(TextResultRow) = try query_res.expect(.rows);
-    //     const rows_iter: ResultRowIter(TextResultRow) = rows.iter();
-    //     while (try rows_iter.next()) |row| {
-    //         const elems: TextElems = try row.textElems(allocator);
-    //         defer elems.deinit(allocator);
+    { // Iterating over rows, collecting elements into []const ?[]const u8
+        const query_res = try c.queryRows("SELECT 3, 4, null, 6, 7");
+        const rows: ResultSet(TextResultRow) = try query_res.expect(.rows);
+        const rows_iter: ResultRowIter(TextResultRow) = rows.iter();
+        while (try rows_iter.next()) |row| {
+            const elems: TextElems = try row.textElems(allocator);
+            defer elems.deinit(allocator);
 
-    //         try std.testing.expectEqualDeep(
-    //             @as([]const ?[]const u8, &.{ "3", "4", null, "6", "7" }),
-    //             elems.elems,
-    //         );
-    //     }
-    // }
-    // { // Iterating over rows, collecting elements into []const []const ?[]const u8
-    //     const query_res = try c.queryRows("SELECT 8,9 UNION ALL SELECT 10,11");
-    //     const rows: ResultSet(TextResultRow) = try query_res.expect(.rows);
-    //     const table = try rows.tableTexts(allocator);
-    //     defer table.deinit(allocator);
+            try std.testing.expectEqualDeep(
+                @as([]const ?[]const u8, &.{ "3", "4", null, "6", "7" }),
+                elems.elems,
+            );
+        }
+    }
+    { // Iterating over rows, collecting elements into []const []const ?[]const u8
+        const query_res = try c.queryRows("SELECT 8,9 UNION ALL SELECT 10,11");
+        const rows: ResultSet(TextResultRow) = try query_res.expect(.rows);
+        const table = try rows.tableTexts(allocator);
+        defer table.deinit(allocator);
 
-    //     try std.testing.expectEqualDeep(
-    //         @as([]const []const ?[]const u8, &.{
-    //             &.{ "8", "9" },
-    //             &.{ "10", "11" },
-    //         }),
-    //         table.table,
-    //     );
-    // }
+        try std.testing.expectEqualDeep(
+            @as([]const []const ?[]const u8, &.{
+                &.{ "8", "9" },
+                &.{ "10", "11" },
+            }),
+            table.table,
+        );
+    }
 }
 
 test "prepare check" {
@@ -246,6 +246,54 @@ test "prepare execute with result" {
         const structs = try rows_iter.tableStructs(MyType, allocator);
         defer structs.deinit(allocator);
         try std.testing.expectEqualDeep(expected, structs.struct_list.items);
+    }
+}
+
+test "prepare execute - first" {
+    var c = try Conn.init(std.testing.allocator, &test_config);
+    defer c.deinit();
+
+    {
+        const query =
+            \\SELECT 1
+            \\UNION ALL
+            \\SELECT 2
+        ;
+
+        const prep_res = try c.prepare(allocator, query);
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+        const query_res = try c.executeRows(&prep_stmt, .{});
+        const rows = try query_res.expect(.rows);
+
+        const MyType = struct { a: u8 };
+
+        const expected = MyType{ .a = 1 };
+
+        const first = try rows.first();
+        try std.testing.expect(first != null);
+
+        var value: MyType = undefined;
+        try first.?.scan(&value);
+        try std.testing.expectEqualDeep(expected, value);
+        try c.ping();
+    }
+
+    {
+        const query =
+            \\SELECT NULL
+            \\WHERE FALSE
+        ;
+
+        const prep_res = try c.prepare(allocator, query);
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+        const query_res = try c.executeRows(&prep_stmt, .{});
+        const rows = try query_res.expect(.rows);
+
+        const first = try rows.first();
+        try std.testing.expectEqual(null, first);
+        try c.ping();
     }
 }
 
@@ -580,6 +628,359 @@ test "binary data types - string" {
     }
 }
 
+test "binary data types - array" {
+    var c = try Conn.init(std.testing.allocator, &test_config);
+    defer c.deinit();
+
+    try queryExpectOk(&c, "CREATE DATABASE test");
+    defer queryExpectOk(&c, "DROP DATABASE test") catch {};
+
+    try queryExpectOk(&c,
+        \\CREATE TABLE test.array_types_example (
+        \\    binary_col BINARY(4),
+        \\    not_null_binary_col BINARY(4) NOT NULL
+        \\)
+    );
+    defer queryExpectOk(&c, "DROP TABLE test.array_types_example") catch {};
+
+    { // Exec Insert
+        const prep_res = try c.prepare(allocator, "INSERT INTO test.array_types_example VALUES (?, ?)");
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+
+        const params = .{
+            .{ null, "1234" },
+            .{ "0246", "1234" },
+            .{ null, "123" },
+            .{ "024", "123" },
+        };
+        inline for (params) |param| {
+            const exe_res = try c.execute(&prep_stmt, param);
+            _ = try exe_res.expect(.ok);
+        }
+
+        const fail_params = .{
+            .{ null, "12345" },
+            .{ "02468", "12345" },
+        };
+        inline for (fail_params) |param| {
+            const exe_res = try c.execute(&prep_stmt, param);
+            _ = try exe_res.expect(.err);
+        }
+    }
+
+    { // Text Protocol
+        const res = try c.queryRows("SELECT * FROM test.array_types_example");
+        const rows: ResultSet(TextResultRow) = try res.expect(.rows);
+
+        const table_texts = try rows.tableTexts(allocator);
+        defer table_texts.deinit(allocator);
+
+        const expected: []const []const ?[]const u8 = &.{
+            &.{ null, "1234" },
+            &.{ "0246", "1234" },
+            &.{ null, "123\x00" },
+            &.{ "024\x00", "123\x00" },
+        };
+        try std.testing.expectEqualDeep(expected, table_texts.table);
+    }
+
+    { // Select (Binary Protocol)
+        const ArrayTypesExample = struct {
+            binary_col: ?[4]u8,
+            not_null_binary_col: [4]u8,
+        };
+
+        const Long = struct {
+            binary_col: ?[5]u8,
+            not_null_binary_col: [5]u8,
+        };
+
+        const Short = struct {
+            binary_col: ?[3]u8,
+            not_null_binary_col: [3]u8,
+        };
+
+        const Sentinel = struct {
+            binary_col: ?[4:1]u8,
+            not_null_binary_col: [4:1]u8,
+        };
+
+        const prep_res = try c.prepare(allocator,
+            \\SELECT * FROM test.array_types_example
+        );
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+        {
+            const res = try c.executeRows(&prep_stmt, .{});
+            const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+            const rows_iter = rows.iter();
+
+            const expected: []const ArrayTypesExample = &.{
+                .{
+                    .binary_col = null,
+                    .not_null_binary_col = "1234".*,
+                },
+                .{
+                    .binary_col = "0246".*,
+                    .not_null_binary_col = "1234".*,
+                },
+                .{ .binary_col = null, .not_null_binary_col = "123\x00".* },
+                .{
+                    .binary_col = "024\x00".*,
+                    .not_null_binary_col = "123\x00".*,
+                },
+            };
+
+            const structs = try rows_iter.tableStructs(ArrayTypesExample, allocator);
+            defer structs.deinit(allocator);
+            try std.testing.expectEqualDeep(expected, structs.struct_list.items);
+        }
+
+        {
+            const res = try c.executeRows(&prep_stmt, .{});
+            const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+            const rows_iter = rows.iter();
+
+            const expected_shorts: []const Short = &.{
+                .{
+                    .binary_col = null,
+                    .not_null_binary_col = "123".*,
+                },
+                .{
+                    .binary_col = "024".*,
+                    .not_null_binary_col = "123".*,
+                },
+                .{ .binary_col = null, .not_null_binary_col = "123".* },
+                .{
+                    .binary_col = "024".*,
+                    .not_null_binary_col = "123".*,
+                },
+            };
+
+            const shorts = try rows_iter.tableStructs(Short, allocator);
+            defer shorts.deinit(allocator);
+            try std.testing.expectEqualDeep(expected_shorts, shorts.struct_list.items);
+        }
+
+        {
+            const res = try c.executeRows(&prep_stmt, .{});
+            const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+            const rows_iter = rows.iter();
+
+            const expected_sentinels: []const Sentinel = &.{
+                .{
+                    .binary_col = null,
+                    .not_null_binary_col = @as(*const [4:1]u8, @ptrCast("1234\x01")).*,
+                },
+                .{
+                    .binary_col = @as(*const [4:1]u8, @ptrCast("0246\x01")).*,
+                    .not_null_binary_col = @as(*const [4:1]u8, @ptrCast("1234\x01")).*,
+                },
+                .{ .binary_col = null, .not_null_binary_col = @as(*const [4:1]u8, @ptrCast("123\x00\x01")).* },
+                .{
+                    .binary_col = @as(*const [4:1]u8, @ptrCast("024\x00\x01")).*,
+                    .not_null_binary_col = @as(*const [4:1]u8, @ptrCast("123\x00\x01")).*,
+                },
+            };
+
+            const sentinels = try rows_iter.tableStructs(Sentinel, allocator);
+            defer sentinels.deinit(allocator);
+            try std.testing.expectEqualDeep(expected_sentinels, sentinels.struct_list.items);
+        }
+
+        {
+            const res = try c.executeRows(&prep_stmt, .{});
+            const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+            const rows_iter = rows.iter();
+
+            const expected_longs: []const Long = &.{
+                .{
+                    .binary_col = null,
+                    .not_null_binary_col = "1234\x00".*,
+                },
+                .{
+                    .binary_col = "0246\x00".*,
+                    .not_null_binary_col = "1234\x00".*,
+                },
+                .{ .binary_col = null, .not_null_binary_col = "123\x00\x00".* },
+                .{
+                    .binary_col = "024\x00\x00".*,
+                    .not_null_binary_col = "123\x00\x00".*,
+                },
+            };
+
+            const longs = try rows_iter.tableStructs(Long, allocator);
+            defer longs.deinit(allocator);
+            try std.testing.expectEqualDeep(expected_longs, longs.struct_list.items);
+        }
+    }
+}
+
+test "binary data types - BoundedArray" {
+    var c = try Conn.init(std.testing.allocator, &test_config);
+    defer c.deinit();
+
+    try queryExpectOk(&c, "CREATE DATABASE test");
+    defer queryExpectOk(&c, "DROP DATABASE test") catch {};
+
+    try queryExpectOk(&c,
+        \\CREATE TABLE test.bounded_array_types_example (
+        \\    varchar_col VARCHAR(255),
+        \\    not_null_varchar_col VARCHAR(255) NOT NULL
+        \\)
+    );
+    defer queryExpectOk(&c, "DROP TABLE test.bounded_array_types_example") catch {};
+
+    { // Exec Insert
+        const prep_res = try c.prepare(allocator, "INSERT INTO test.bounded_array_types_example VALUES (?, ?)");
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+
+        const params = .{
+            .{ "hello", "world" },
+            .{ null, "foo" },
+            .{ null, "" },
+            .{
+                @as(?*const [3]u8, "baz"),
+                @as([*:0]const u8, "bar"),
+            },
+        };
+        inline for (params) |param| {
+            const exe_res = try c.execute(&prep_stmt, param);
+            _ = try exe_res.expect(.ok);
+        }
+    }
+
+    { // Select (Binary Protocol)
+        const BoundedArray = std.BoundedArray(u8, 255);
+
+        const BoundedArrayTypesExample = struct {
+            varchar_col: ?BoundedArray,
+            not_null_varchar_col: BoundedArray,
+        };
+
+        const prep_res = try c.prepare(allocator,
+            \\SELECT * FROM test.bounded_array_types_example
+        );
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+        const res = try c.executeRows(&prep_stmt, .{});
+        const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+        const rows_iter = rows.iter();
+
+        const expected: []const BoundedArrayTypesExample = &.{
+            .{
+                .varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("hello");
+                    break :blk arr;
+                },
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("world");
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = null,
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("foo");
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = null,
+                .not_null_varchar_col = blk: {
+                    const arr = try BoundedArray.init(0);
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("baz");
+                    break :blk arr;
+                },
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("bar");
+                    break :blk arr;
+                },
+            },
+        };
+
+        const structs = try rows_iter.tableStructs(BoundedArrayTypesExample, allocator);
+        defer structs.deinit(allocator);
+        try std.testing.expectEqualDeep(expected, structs.struct_list.items);
+    }
+
+    { // Select (Binary Protocol) -- Small array
+        const BoundedArray = std.BoundedArray(u8, 3);
+
+        const BoundedArrayTypesExample = struct {
+            varchar_col: ?BoundedArray,
+            not_null_varchar_col: BoundedArray,
+        };
+
+        const prep_res = try c.prepare(allocator,
+            \\SELECT * FROM test.bounded_array_types_example
+        );
+        defer prep_res.deinit(allocator);
+        const prep_stmt = try prep_res.expect(.stmt);
+        const res = try c.executeRows(&prep_stmt, .{});
+        const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+        const rows_iter = rows.iter();
+
+        const expected: []const BoundedArrayTypesExample = &.{
+            .{
+                .varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("hel");
+                    break :blk arr;
+                },
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("wor");
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = null,
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("foo");
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = null,
+                .not_null_varchar_col = blk: {
+                    const arr = try BoundedArray.init(0);
+                    break :blk arr;
+                },
+            },
+            .{
+                .varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("baz");
+                    break :blk arr;
+                },
+                .not_null_varchar_col = blk: {
+                    var arr = try BoundedArray.init(0);
+                    try arr.appendSlice("bar");
+                    break :blk arr;
+                },
+            },
+        };
+
+        const structs = try rows_iter.tableStructs(BoundedArrayTypesExample, allocator);
+        defer structs.deinit(allocator);
+        try std.testing.expectEqualDeep(expected, structs.struct_list.items);
+    }
+}
+
 test "binary data types - temporal" {
     var c = try Conn.init(std.testing.allocator, &test_config);
     defer c.deinit();
@@ -696,7 +1097,7 @@ test "select concat with params" {
         const prep_res = try c.prepare(allocator, "SELECT CONCAT(?, ?) AS col1");
         defer prep_res.deinit(allocator);
         const prep_stmt = try prep_res.expect(.stmt);
-        const res = try c.executeRows(&prep_stmt, .{ "hello", "world" });
+        const res = try c.executeRows(&prep_stmt, .{ runtimeValue("hello"), runtimeValue("world") });
         const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
         const rows_iter = rows.iter();
 
@@ -706,4 +1107,8 @@ test "select concat with params" {
         defer structs.deinit(allocator);
         try std.testing.expectEqualDeep(expected, structs.struct_list.items);
     }
+}
+
+fn runtimeValue(a: anytype) @TypeOf(a) {
+    return a;
 }

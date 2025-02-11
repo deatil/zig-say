@@ -5,11 +5,11 @@
 - Beta
 
 ## Version Compatibility
-| MyZQL       | Zig       |
-|-------------|-----------|
-| 0.0.9.1     | 0.12.0    |
-| 0.13.0      | 0.13.0    |
-- `main` branch of this repository will follow the `master` branch of Zig.
+| MyZQL       | Zig                       |
+|-------------|---------------------------|
+| 0.0.9.1     | 0.12.0                    |
+| 0.13.2      | 0.13.0                    |
+| main        | 0.14.0-dev.2851+b074fb7dd |
 
 ## Features
 - Native Zig code, no external dependencies
@@ -42,7 +42,8 @@
     // ...
     .dependencies = .{
       .myzql = .{
-        .url = "https://github.com/speed2exe/myzql/archive/refs/tags/0.0.8.tar.gz",
+        // choose a tag according to "Version Compatibility" table
+        .url = "https://github.com/speed2exe/myzql/archive/refs/tags/0.13.2.tar.gz",
         .hash = "1220582ea45580eec6b16aa93d2a9404467db8bc1d911806d367513aa40f3817f84c",
       }
     },
@@ -325,6 +326,105 @@ fn main() !void {
     }
 }
 ```
+
+### Arrays Support
+- Assume that you have the SQL table:
+```sql
+CREATE TABLE test.array_types_example (
+    name VARCHAR(16) NOT NULL,
+    mac_addr BINARY(6)
+)
+```
+
+```zig
+fn main() !void {
+    { // Insert
+        const prep_res = try c.prepare(allocator, "INSERT INTO test.array_types_example VALUES (?, ?)");
+        defer prep_res.deinit(allocator);
+        const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+        const params = .{
+            .{ "John", &[_]u8 { 0xFE } ** 6 },
+            .{ "Alice", null }
+        };
+        inline for (params) |param| {
+            const exe_res = try c.execute(&prep_stmt, param);
+            _ = try exe_res.expect(.ok);
+        }
+    }
+
+    { // Select
+        const Client = struct {
+            name: [16:1]u8,
+            mac_addr: ?[6]u8,
+        };
+        const prep_res = try c.prepare(allocator, "SELECT * FROM test.array_types_example");
+        defer prep_res.deinit(allocator);
+        const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+        const res = try c.executeRows(&prep_stmt, .{});
+        const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+        const rows_iter = rows.iter();
+
+        const structs = try rows_iter.tableStructs(DateTimeDuration, allocator);
+        defer structs.deinit(allocator);
+        std.debug.print("structs: {any}\n", .{structs.struct_list.items}); // structs.rows: []const Client
+        // Do something with structs
+    }
+}
+```
+- Arrays will be initialized by their sentinel value. In this example, the value of the `name` field corresponding to `John`'s row will be `[16:1]u8 { 'J', 'o', 'h', 'n', 1, 1, 1, ... }`
+- If the array doesn't have a sentinel value, it will be zero-initialized.
+- Insufficiently sized arrays will silently truncate excess data
+
+### `BoundedArray` Support
+- Assume that you have the SQL table:
+```sql
+CREATE TABLE test.bounded_array_types_example (
+    name VARCHAR(16) NOT NULL,
+    address VARCHAR(128)
+)
+```
+
+```zig
+const std = @import("std");
+
+fn main() !void {
+    { // Insert
+        const prep_res = try c.prepare(allocator, "INSERT INTO test.bounded_array_types_example VALUES (?, ?)");
+        defer prep_res.deinit(allocator);
+        const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+        const params = .{
+            .{ "John", "5 Rosewood Avenue Maryville, TN 37803"},
+            .{ "Alice", null }
+        };
+        inline for (params) |param| {
+            const exe_res = try c.execute(&prep_stmt, param);
+            _ = try exe_res.expect(.ok);
+        }
+    }
+
+    { // Select
+        const Client = struct {
+            name: std.BoundedArray(u8, 16),
+            address: ?std.BoundedArray(u8, 128),
+        };
+        const prep_res = try c.prepare(allocator, "SELECT * FROM test.bounded_array_types_example");
+        defer prep_res.deinit(allocator);
+        const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+        const res = try c.executeRows(&prep_stmt, .{});
+        const rows: ResultSet(BinaryResultRow) = try res.expect(.rows);
+        const rows_iter = rows.iter();
+
+        const structs = try rows_iter.tableStructs(Client, allocator);
+        defer structs.deinit(allocator);
+        std.debug.print("structs: {any}\n", .{structs.struct_list.items}); // structs.rows: []const Client
+        // Do something with structs
+    }
+}
+```
+
+- Insufficiently sized `BoundedArray`s will silently truncate excess data
 
 ## Unit Tests
 - `zig test src/myzql.zig`

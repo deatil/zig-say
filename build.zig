@@ -17,32 +17,12 @@ pub fn build(b: *std.Build) !void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const templates_paths = try zmpl_build.templatesPaths(
-        b.allocator,
-        &.{
-            .{ .prefix = "views", .path = &.{ "src", "app", "views" } },
-        },
-    );
-
-    const zmpl = b.dependency("zmpl", .{
-            .target = target,
-            .optimize = optimize,
-            .zmpl_templates_paths = templates_paths,
-            .zmpl_auto_build = false,
-            .zmpl_markdown_fragments = try generateMarkdownFragments(b),
-            .zmpl_constants = try zmpl_build.addTemplateConstants(b, struct {
-                blog_view: []const u8,
-            }),
-        },
-    );
-
-    const httpz = b.dependency("httpz", .{
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const lib = b.addStaticLibrary(.{
-        .name = "zig-blog",
+    // This creates a "module", which represents a collection of source files alongside
+    // some compilation options, such as optimization mode and linked system libraries.
+    // Every executable or library we compile will be based on one or more modules.
+    const lib_mod = b.createModule(.{
+        // `root_source_file` is the Zig "entry point" of the module. If a module
+        // only contains e.g. external object files, you can make this `null`.
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/root.zig"),
@@ -50,20 +30,72 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
-    b.installArtifact(lib);
-
-    const exe = b.addExecutable(.{
-        .name = "zig-blog",
+    // We will also create a module for our other entry point, 'main.zig'.
+    const exe_mod = b.createModule(.{
+        // `root_source_file` is the Zig "entry point" of the module. If a module
+        // only contains e.g. external object files, you can make this `null`.
+        // In this case the main source file is merely a path, however, in more
+        // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
+    // Modules can depend on one another using the `std.Build.Module.addImport` function.
+    // This is what allows Zig source code to use `@import("foo")` where 'foo' is not a
+    // file path. In this case, we set up `exe_mod` to import `lib_mod`.
+    exe_mod.addImport("zig-say_lib", lib_mod);
+
+    // Now, we will create a static library based on the module we created above.
+    // This creates a `std.Build.Step.Compile`, which is the build step responsible
+    // for actually invoking the compiler.
+    const lib = b.addStaticLibrary(.{
+        .name = "zig-say",
+        .root_module = lib_mod,
+    });
+
+    // This declares intent for the library to be installed into the standard
+    // location when the user invokes the "install" step (the default step when
+    // running `zig build`).
+    b.installArtifact(lib);
+
+    // This creates another `std.Build.Step.Compile`, but this one builds an executable
+    // rather than a static library.
+    const exe = b.addExecutable(.{
+        .name = "zig-say",
+        .root_module = exe_mod,
+    });
+
+    // zmpl
+    const templates_paths = try zmpl_build.templatesPaths(
+        b.allocator,
+        &.{
+            .{ .prefix = "views", .path = &.{ "src", "app", "views" } },
+        },
+    );
+    const zmpl = b.dependency("zmpl", .{
+            .target = target,
+            .optimize = optimize,
+            .zmpl_templates_paths = templates_paths,
+            .zmpl_auto_build = false,
+            .zmpl_markdown_fragments = try generateMarkdownFragments(b),
+            .zmpl_constants = try zmpl_build.addTemplateConstants(b, struct {
+                say_view: []const u8,
+            }),
+        },
+    );
     exe.root_module.addImport("zmpl", zmpl.module("zmpl"));
+
+    // httpz
+    const httpz = b.dependency("httpz", .{
+        .target = target,
+        .optimize = optimize,
+    });
     exe.root_module.addImport("httpz", httpz.module("httpz"));
+
+    // myzql
+    const myzql_dep = b.dependency("myzql", .{});
+    exe.root_module.addImport("myzql", myzql_dep.module("myzql"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
@@ -96,17 +128,13 @@ pub fn build(b: *std.Build) !void {
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = lib_mod,
     });
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
     const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = exe_mod,
     });
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
@@ -160,4 +188,5 @@ fn getMarkdownFragmentsSource(allocator: std.mem.Allocator, source: [:0]const u8
 
     return null;
 }
+
 

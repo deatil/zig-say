@@ -17,8 +17,8 @@ pub fn scanBinResultRow(dest: anytype, packet: *const Packet, col_defs: []const 
     const null_bitmap_len = (col_defs.len + 7 + 2) / 8;
     const null_bitmap = reader.readRefRuntime(null_bitmap_len);
 
-    const child_type = @typeInfo(@TypeOf(dest)).Pointer.child;
-    const struct_fields = @typeInfo(child_type).Struct.fields;
+    const child_type = @typeInfo(@TypeOf(dest)).pointer.child;
+    const struct_fields = @typeInfo(child_type).@"struct".fields;
 
     if (struct_fields.len != col_defs.len) {
         std.log.err("received {d} columns from mysql, but given {d} fields for struct", .{ struct_fields.len, col_defs.len });
@@ -30,11 +30,11 @@ pub fn scanBinResultRow(dest: anytype, packet: *const Packet, col_defs: []const 
         const isNull = binResIsNull(null_bitmap, i);
 
         switch (field_info) {
-            .Optional => {
+            .optional => {
                 if (isNull) {
                     @field(dest, field.name) = null;
                 } else {
-                    @field(dest, field.name) = try binElemToValue(field_info.Optional.child, field.name, &col_def, &reader, allocator);
+                    @field(dest, field.name) = try binElemToValue(field_info.optional.child, field.name, &col_def, &reader, allocator);
                 }
             },
             else => {
@@ -146,9 +146,9 @@ inline fn binElemToValue(
     }
 
     switch (field_info) {
-        .Pointer => |pointer| {
+        .pointer => |pointer| {
             switch (@typeInfo(pointer.child)) {
-                .Int => |int| {
+                .int => |int| {
                     if (int.bits == 8) {
                         switch (col_type) {
                             .MYSQL_TYPE_STRING,
@@ -167,7 +167,7 @@ inline fn binElemToValue(
                             => {
                                 const str = reader.readLengthEncodedString();
                                 if (allocator) |a| {
-                                    if (pointer.sentinel) |_| {
+                                    if (pointer.sentinel()) |_| {
                                         return try a.dupeZ(u8, str);
                                     }
                                     return try a.dupe(u8, str);
@@ -181,7 +181,45 @@ inline fn binElemToValue(
                 else => {},
             }
         },
-        .Enum => |e| {
+        .@"struct" => |s| {
+            inline for (s.fields) |field| {
+                if (std.mem.eql(u8, field.name, "buffer")) {
+                    const info = @typeInfo(field.type);
+                    switch (info) {
+                        .array => |array| {
+                            if (FieldType == std.BoundedArray(u8, array.len)) {
+                                switch (col_type) {
+                                    .MYSQL_TYPE_STRING,
+                                    .MYSQL_TYPE_VARCHAR,
+                                    .MYSQL_TYPE_VAR_STRING,
+                                    .MYSQL_TYPE_ENUM,
+                                    .MYSQL_TYPE_SET,
+                                    .MYSQL_TYPE_LONG_BLOB,
+                                    .MYSQL_TYPE_MEDIUM_BLOB,
+                                    .MYSQL_TYPE_BLOB,
+                                    .MYSQL_TYPE_TINY_BLOB,
+                                    .MYSQL_TYPE_GEOMETRY,
+                                    .MYSQL_TYPE_BIT,
+                                    .MYSQL_TYPE_DECIMAL,
+                                    .MYSQL_TYPE_NEWDECIMAL,
+                                    => {
+                                        const str = reader.readLengthEncodedString();
+                                        var ret = try std.BoundedArray(u8, array.len).init(0);
+                                        try ret.appendSlice(str[0..@min(str.len, array.len)]);
+                                        return ret;
+                                    },
+                                    else => {},
+                                }
+                            }
+                        },
+                        else => {},
+                    }
+                }
+                break;
+            }
+        },
+
+        .@"enum" => |e| {
             switch (col_type) {
                 .MYSQL_TYPE_STRING,
                 .MYSQL_TYPE_VARCHAR,
@@ -211,7 +249,7 @@ inline fn binElemToValue(
                 else => {},
             }
         },
-        .Int => |int| {
+        .int => |int| {
             switch (int.signedness) {
                 .unsigned => {
                     switch (col_type) {
@@ -249,7 +287,7 @@ inline fn binElemToValue(
                 },
             }
         },
-        .Float => |float| {
+        .float => |float| {
             if (float.bits >= 64) {
                 switch (col_type) {
                     .MYSQL_TYPE_DOUBLE => return @as(f64, @bitCast(reader.readInt(u64))),
@@ -262,6 +300,45 @@ inline fn binElemToValue(
                     .MYSQL_TYPE_FLOAT => return @as(f32, @bitCast(reader.readInt(u32))),
                     else => {},
                 }
+            }
+        },
+        .array => |array| {
+            switch (@typeInfo(array.child)) {
+                .int => |int| {
+                    if (int.bits == 8) {
+                        switch (col_type) {
+                            .MYSQL_TYPE_STRING,
+                            .MYSQL_TYPE_VARCHAR,
+                            .MYSQL_TYPE_VAR_STRING,
+                            .MYSQL_TYPE_ENUM,
+                            .MYSQL_TYPE_SET,
+                            .MYSQL_TYPE_LONG_BLOB,
+                            .MYSQL_TYPE_MEDIUM_BLOB,
+                            .MYSQL_TYPE_BLOB,
+                            .MYSQL_TYPE_TINY_BLOB,
+                            .MYSQL_TYPE_GEOMETRY,
+                            .MYSQL_TYPE_BIT,
+                            .MYSQL_TYPE_DECIMAL,
+                            .MYSQL_TYPE_NEWDECIMAL,
+                            => {
+                                const str = reader.readLengthEncodedString();
+                                if (array.sentinel()) |sentinel| {
+                                    var ret: [array.len:sentinel]u8 = [_:sentinel]u8{sentinel} ** array.len;
+                                    const min = @min(str.len, array.len);
+                                    @memcpy(ret[0..min], str[0..min]);
+                                    return ret;
+                                } else {
+                                    var ret: [array.len]u8 = [_]u8{0} ** array.len;
+                                    const min = @min(str.len, array.len);
+                                    @memcpy(ret[0..min], str[0..min]);
+                                    return ret;
+                                }
+                            },
+                            else => {},
+                        }
+                    }
+                },
+                else => {},
             }
         },
         else => {},

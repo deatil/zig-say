@@ -1,27 +1,16 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-
-    const lib = b.addStaticLibrary(.{
-        .name = "myzql",
-        .root_source_file = b.path("src/myzql.zig"),
-        .target = target,
-        .optimize = optimize,
+    const myzql = b.addModule("myzql", .{
+        .root_source_file = b.path("./src/myzql.zig"),
     });
-
-    const zmpl_module = b.addModule("myzql", .{ 
-        .root_source_file = b.path("src/myzql.zig"),
-    });
-    lib.root_module.addImport("myzql", zmpl_module);
 
     // -Dtest-filter="..."
     const test_filter = b.option([]const []const u8, "test-filter", "Filter for tests to run");
 
     // zig build unit_test
     const unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/myzql.zig"),
+        .root_source_file = b.path("./src/myzql.zig"),
     });
     if (test_filter) |t| unit_tests.filters = t;
 
@@ -37,7 +26,7 @@ pub fn build(b: *std.Build) void {
     const integration_tests = b.addTest(.{
         .root_source_file = b.path("./integration_tests/main.zig"),
     });
-    integration_tests.root_module.addImport("myzql", zmpl_module);
+    integration_tests.root_module.addImport("myzql", myzql);
     if (test_filter) |t| integration_tests.filters = t;
 
     // zig build [install]

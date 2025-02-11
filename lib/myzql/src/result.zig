@@ -50,6 +50,9 @@ pub const QueryResult = union(enum) {
     }
 };
 
+/// T is either:
+/// - TextResultRow (queryRows)
+/// - BinaryResultRow (executeRows)
 pub fn QueryResultRows(comptime T: type) type {
     return union(enum) {
         err: ErrorPacket,
@@ -72,6 +75,11 @@ pub fn QueryResultRows(comptime T: type) type {
             };
         }
 
+        /// Example (TextResultRow):
+        /// ...
+        /// const result: QueryResultRows(TextResultRow) = try conn.queryRows("SELECT * FROM table");
+        /// const rows: ResultSet(TextResultRow) = try result.expect(.rows);
+        /// ...
         pub fn expect(
             q: QueryResultRows(T),
             comptime value_variant: std.meta.FieldEnum(QueryResultRows(T)),
@@ -92,6 +100,9 @@ pub fn QueryResultRows(comptime T: type) type {
     };
 }
 
+/// T is either:
+/// - TextResultRow (queryRows)
+/// - BinaryResultRow (executeRows)
 pub fn ResultSet(comptime T: type) type {
     return struct {
         conn: *Conn,
@@ -126,6 +137,19 @@ pub fn ResultSet(comptime T: type) type {
             const all_rows = try collectAllRowsPacketUntilEof(r.conn, allocator);
             errdefer deinitOwnedPacketList(all_rows);
             return try TableTexts.init(all_rows, allocator, r.col_defs.len);
+        }
+
+        pub fn first(r: *const ResultSet(T)) !?T {
+            const row_res = try r.readRow();
+            return switch (row_res) {
+                .ok => null,
+                .err => |err| err.asError(),
+                .row => |row| blk: {
+                    const i = r.iter();
+                    while (try i.next()) |_| {}
+                    break :blk row;
+                },
+            };
         }
 
         pub fn iter(r: *const ResultSet(T)) ResultRowIter(T) {
@@ -225,7 +249,7 @@ pub const BinaryResultRow = struct {
     }
 
     fn structFreeDynamic(s: anytype, allocator: std.mem.Allocator) void {
-        const s_ti = @typeInfo(@TypeOf(s)).Struct;
+        const s_ti = @typeInfo(@TypeOf(s)).@"struct";
         inline for (s_ti.fields) |field| {
             structFreeStr(field.type, @field(s, field.name), allocator);
         }
@@ -233,13 +257,13 @@ pub const BinaryResultRow = struct {
 
     fn structFreeStr(comptime StructField: type, value: StructField, allocator: std.mem.Allocator) void {
         switch (@typeInfo(StructField)) {
-            .Pointer => |p| switch (@typeInfo(p.child)) {
-                .Int => |int| if (int.bits == 8) {
+            .pointer => |p| switch (@typeInfo(p.child)) {
+                .int => |int| if (int.bits == 8) {
                     allocator.free(value);
                 },
                 else => {},
             },
-            .Optional => |o| if (value) |some| structFreeStr(o.child, some, allocator),
+            .optional => |o| if (value) |some| structFreeStr(o.child, some, allocator),
             else => {},
         }
     }

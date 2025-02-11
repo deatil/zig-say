@@ -36,10 +36,13 @@ fn showHtml(req: *httpz.Request, res: *httpz.Response) !void {
     try user.put("email", data.string("user@example.com"));
 
     try body.put("user", user);
-    try data.addConst("blog_view", data.string("test"));
+    try data.addConst("say_view", data.string("test"));
+
+    const Context = struct { foo: []const u8 = "default" };
+    const context = Context { .foo = "bar" };
 
     if (zmpl.find("showhtml")) |template| {
-        const output = try template.render(&data);
+        const output = try template.render(&data, Context, context, .{});
 
         res.status = 200;
         res.body = output;
