@@ -1,6 +1,6 @@
-## Zig-say 
+## Zig-Blog 
 
-Zig-say is a say system for Zig.
+Zig-Blog  is a blog system for Zig.
 
 
 ### Env

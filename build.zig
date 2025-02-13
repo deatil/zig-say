@@ -44,7 +44,7 @@ pub fn build(b: *std.Build) !void {
     // Modules can depend on one another using the `std.Build.Module.addImport` function.
     // This is what allows Zig source code to use `@import("foo")` where 'foo' is not a
     // file path. In this case, we set up `exe_mod` to import `lib_mod`.
-    exe_mod.addImport("zig-say_lib", lib_mod);
+    exe_mod.addImport("say-lib", lib_mod);
 
     // Now, we will create a static library based on the module we created above.
     // This creates a `std.Build.Step.Compile`, which is the build step responsible
@@ -70,7 +70,7 @@ pub fn build(b: *std.Build) !void {
     const templates_paths = try zmpl_build.templatesPaths(
         b.allocator,
         &.{
-            .{ .prefix = "views", .path = &.{ "src", "app", "views" } },
+            .{ .prefix = "views", .path = &.{ "resources", "views" } },
         },
     );
     const zmpl = b.dependency("zmpl", .{
@@ -85,6 +85,7 @@ pub fn build(b: *std.Build) !void {
         },
     );
     exe.root_module.addImport("zmpl", zmpl.module("zmpl"));
+    lib_mod.addImport("zmpl", zmpl.module("zmpl"));
 
     // httpz
     const httpz = b.dependency("httpz", .{
@@ -92,10 +93,12 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     exe.root_module.addImport("httpz", httpz.module("httpz"));
+    lib_mod.addImport("httpz", httpz.module("httpz"));
 
     // myzql
     const myzql_dep = b.dependency("myzql", .{});
     exe.root_module.addImport("myzql", myzql_dep.module("myzql"));
+    lib_mod.addImport("myzql", myzql_dep.module("myzql"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default

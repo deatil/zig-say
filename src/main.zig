@@ -1,55 +1,48 @@
 const std = @import("std");
 const httpz = @import("httpz");
 const zmpl = @import("zmpl");
+const myzql = @import("myzql");
+const Conn = myzql.conn.Conn;
+
+const lib = @import("say-lib");
+const App = lib.global.App;
+const config = lib.global.config;
+
+const controller = @import("./app/controller/controller.zig");
+const index_controller = controller.index;
+const user_controller = controller.user;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    // More advance cases will use a custom "Handler" instead of "void".
-    // The last parameter is our handler instance, since we have a "void"
-    // handler, we passed a void ({}) value.
-    var server = try httpz.Server(void).init(allocator, .{.port = 5882}, {});
+    var db = try Conn.init(
+        allocator,
+        &.{
+            .username = config.db.username,   
+            .password = config.db.password,  
+            .database = config.db.database,  
+            .address =  config.db.address,  
+        },
+    );
+    defer db.deinit();
+    try db.ping();
+
+    var app = App{
+        .db = &db,
+    };
+
+    var server = try httpz.Server(*App).init(allocator, .{.port = 5882}, &app);
 
     var router = server.router(.{});
-    router.get("/api/user/:id", getUser, .{});
-    router.get("/html", showHtml, .{});
 
-    // blocks
+    router.get("/api/user/:id", index_controller.getUser, .{});
+    router.get("/html", index_controller.showHtml, .{});
+
+    router.get("/user/list", user_controller.getUser, .{});
+    router.get("/user/info/:id", user_controller.getUserInfo, .{});
+    router.get("/user/add", user_controller.addUser, .{});
+    router.get("/user/del/:id", user_controller.deleteUser, .{});
+
     try server.listen(); 
 }
-
-fn getUser(req: *httpz.Request, res: *httpz.Response) !void {
-    res.status = 200;
-    try res.json(.{.id = req.param("id").?, .name = "Teg"}, .{});
-}
-
-fn showHtml(req: *httpz.Request, res: *httpz.Response) !void {
-    _ = req;
-
-    var data = zmpl.Data.init(std.heap.page_allocator);
-    defer data.deinit();
-
-    var body = try data.object();
-    var user = try data.object();
-
-    try user.put("email", data.string("user@example.com"));
-
-    try body.put("user", user);
-    try data.addConst("say_view", data.string("test"));
-
-    const Context = struct { foo: []const u8 = "default" };
-    const context = Context { .foo = "bar" };
-
-    if (zmpl.find("showhtml")) |template| {
-        const output = try template.render(&data, Context, context, .{});
-
-        res.status = 200;
-        res.body = output;
-    } else {
-        res.status = 200;
-        try res.json(.{.err = "html not exists"}, .{});
-    }
-}
-
-
