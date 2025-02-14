@@ -4,19 +4,52 @@ const zmpl = @import("zmpl");
 const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
 
+const Server = httpz.Server(*App);
+
 const lib = @import("say-lib");
 const App = lib.global.App;
 const config = lib.global.config;
+const mime = lib.global.mime;
 
-const controller = @import("./app/controller/controller.zig");
-const index_controller = controller.index;
-const user_controller = controller.user;
+const Logger = @import("./app/middleware/Logger.zig");
+const route = @import("./app/route/route.zig").route;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    var db = try Conn.init(
+    // initDB
+    var db = try initDB(allocator);
+    defer db.deinit();
+
+    // mime_map
+    var mime_map = mime.MimeMap.init(allocator);
+    defer mime_map.deinit();
+    try mime_map.build();
+
+    var app = App{
+        .db = &db,
+        .mime_map = &mime_map,
+    };
+
+    var server = try Server.init(allocator, .{
+        .port = config.server.port,
+        .address = config.server.address,
+    }, &app);
+
+    var router = server.router(.{});
+
+    // middleware
+    const logger = try server.middleware(Logger, .{ .query = true });
+    router.middlewares = &.{logger};
+
+    route(router);
+
+    try server.listen(); 
+}
+
+fn initDB(allocator: std.mem.Allocator) !Conn {
+    var client = try Conn.init(
         allocator,
         &.{
             .username = config.db.username,   
@@ -25,24 +58,9 @@ pub fn main() !void {
             .address =  config.db.address,  
         },
     );
-    defer db.deinit();
-    try db.ping();
+    
+    try client.ping();
 
-    var app = App{
-        .db = &db,
-    };
-
-    var server = try httpz.Server(*App).init(allocator, .{.port = 5882}, &app);
-
-    var router = server.router(.{});
-
-    router.get("/api/user/:id", index_controller.getUser, .{});
-    router.get("/html", index_controller.showHtml, .{});
-
-    router.get("/user/list", user_controller.getUser, .{});
-    router.get("/user/info/:id", user_controller.getUserInfo, .{});
-    router.get("/user/add", user_controller.addUser, .{});
-    router.get("/user/del/:id", user_controller.deleteUser, .{});
-
-    try server.listen(); 
+    return client;
 }
+

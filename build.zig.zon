@@ -34,6 +34,10 @@
             .url = "git+https://github.com/jetzig-framework/zmpl?ref=main#b1dfca8eec73520af5b029016c5b5914da659b6d",
             .hash = "1220e70c218c89de219d4f9506a4ad69bd1b5257cd8c7cdc2ea823830e1d8b9dc4df",
         },
+        .@"zig-time" = .{
+            .url = "git+https://github.com/deatil/zig-time?ref=main#ca7b9bf03b07345158d68fc73f3c8b3f1aeb4da8",
+            .hash = "1220adf7f7cdf6ebdb2db1a5a5871af9a4bd67ea204066c3d1aa6bb2106d742e1791",
+        },
     },
     .paths = .{
         "build.zig",

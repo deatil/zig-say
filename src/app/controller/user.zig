@@ -84,24 +84,22 @@ pub fn getUserInfo(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     defer prep_res.deinit(allocator);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    var user: Person = undefined;
-
     const query_res = try app.db.executeRows(&prep_stmt, .{id}); 
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
-    const rows_iter = rows.iter();
-    while (try rows_iter.next()) |row| {
-        {
-            var person: Person = undefined;
-            try row.scan(&person);
 
-            user = person;
+    const first_info = try rows.first();
+    if (first_info) |val| {
+        var person: Person = undefined;
+        try val.scan(&person);
 
-            break;
-        }
+        res.status = 200;
+        try res.json(.{.user = person}, .{});
+
+        return;
     }
 
     res.status = 200;
-    try res.json(.{.user = user}, .{});
+    try res.json(.{.msg = "no info"}, .{});
 }
 
 pub fn addUser(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -161,4 +159,34 @@ pub fn deleteUser(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     res.status = 200;
     try res.json(.{.msg = "delete success"}, .{});
+}
+
+pub fn updateUser(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
+    const allocator = res.arena;
+
+    if (req.param("id") == null) {
+        res.status = 200;
+        try res.json(.{.msg = "id error"}, .{});
+        return;
+    } 
+
+    const id = req.param("id").?;
+
+    const prep_res = try app.db.prepare(allocator, "UPDATE say_user SET sign = ? WHERE id = ?");
+    defer prep_res.deinit(allocator);
+    const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+    const param = .{ "sign text", id };
+    const exe_res = try app.db.execute(&prep_stmt, param);
+
+    const ok: OkPacket = try exe_res.expect(.ok); 
+    const affected_rows: u64 = ok.affected_rows;
+    if (affected_rows == 0) {
+        res.status = 200;
+        try res.json(.{.msg = "update error"}, .{});
+        return;
+    }
+
+    res.status = 200;
+    try res.json(.{.msg = "update success"}, .{});
 }

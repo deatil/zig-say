@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const zmpl_build = @import("zmpl");
+const mimeTypes = @import("src/mimeTypes.zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
@@ -99,6 +100,16 @@ pub fn build(b: *std.Build) !void {
     const myzql_dep = b.dependency("myzql", .{});
     exe.root_module.addImport("myzql", myzql_dep.module("myzql"));
     lib_mod.addImport("myzql", myzql_dep.module("myzql"));
+
+    // mimeTypes
+    const mime_module = try mimeTypes.generateMimeModule(b);
+    exe.root_module.addImport("mime_types", mime_module);
+    lib_mod.addImport("mime_types", mime_module);
+
+    // zig-time
+    const zig_time_dep = b.dependency("zig-time", .{});
+    exe.root_module.addImport("zig-time", zig_time_dep.module("zig-time"));
+    lib_mod.addImport("zig-time", zig_time_dep.module("zig-time"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
