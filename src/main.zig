@@ -40,7 +40,7 @@ pub fn main() !void {
     var router = server.router(.{});
 
     // middleware
-    const logger = try server.middleware(Logger, .{ .query = true });
+    const logger = try server.middleware(Logger, .{ .query = true, .debug = config.app.debug });
     router.middlewares = &.{logger};
 
     route(router);
