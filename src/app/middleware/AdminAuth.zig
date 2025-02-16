@@ -32,7 +32,7 @@ pub fn execute(self: *const AdminAuth, req: *httpz.Request, res: *httpz.Response
 
         const path = req.url.path;
         if (std.mem.startsWith(u8, path, "/admin/")) {
-            std.debug.print("111111111111111111111", .{});
+            std.debug.print("111111111111111111111 \n", .{});
         }
     }
 

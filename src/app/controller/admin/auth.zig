@@ -6,6 +6,7 @@ const App = lib.global.App;
 const config = lib.global.config;
 const views = lib.views;
 const auth = lib.utils.auth;
+const http = lib.utils.http;
 
 const model = @import("./../../model/lib.zig");
 const admin_model = model.admin;
@@ -21,12 +22,15 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    const fd = try req.formData();
-
-    var it = fd.iterator();
-    while (it.next()) |kv| {
-        std.debug.print("{s}: {s} \n", .{kv.key, kv.value});
+    if (req.body() == null) {
+        try res.json(.{
+            .code = 1,
+            .msg = "username empty",
+        }, .{});
+        return;
     }
+
+    const fd = try http.parseFormData(res.arena, req.body().?);
 
     if (fd.get("username") == null) {
         try res.json(.{
