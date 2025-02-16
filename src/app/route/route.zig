@@ -1,3 +1,6 @@
+const lib = @import("say-lib");
+const config = lib.global.config;
+
 const controller = @import("./../controller/lib.zig");
 const user_controller = controller.user;
 
@@ -6,18 +9,18 @@ const admin = controller.admin;
 const static = controller.static;
 
 pub fn route(router: anytype) void {
-    index_route(router);
-    index_route2(router);
+    indexRoute(router);
+    indexRoute2(router);
 
-    admin_route(router);
-    static_route(router);
+    adminRoute(router);
+    staticRoute(router);
 }
 
-pub fn index_route(router: anytype) void {
+pub fn indexRoute(router: anytype) void {
     router.get("/", index.index.index, .{});
 }
 
-pub fn index_route2(router: anytype) void {
+pub fn indexRoute2(router: anytype) void {
     router.get("/user/list", user_controller.getUser, .{});
     router.get("/user/info/:id", user_controller.getUserInfo, .{});
     router.get("/user/add", user_controller.addUser, .{});
@@ -25,11 +28,14 @@ pub fn index_route2(router: anytype) void {
     router.get("/user/update/:id", user_controller.updateUser, .{});
 }
 
-pub fn admin_route(router: anytype) void {
+pub fn adminRoute(router: anytype) void {
+    router.get("/admin/auth/login", admin.auth.login, .{});
+    router.post("/admin/auth/login", admin.auth.loginSave, .{});
+
     router.get("/admin/index", admin.index.index, .{});
 }
 
-pub fn static_route(router: anytype) void {
+pub fn staticRoute(router: anytype) void {
     router.get("/static/*", static.static.index, .{});
 }
 

@@ -2,6 +2,22 @@ const std = @import("std");
 const myzql = @import("myzql");
 const constants = myzql.constants;
 
+pub const App = struct {
+    debug: bool = false,
+    public_path: []const u8 = "",
+    max_bytes_public_content: usize = std.math.pow(usize, 2, 20),
+};
+
+pub const Server = struct {
+    port: ?u16 = null,
+    address: ?[]const u8 = null,
+};
+
+pub const Auth = struct {
+    key: []const u8 = "",
+    iv: []const u8 = "",
+};
+
 pub const DB = struct {
     username: [:0]const u8 = "root",
     address: std.net.Address = std.net.Address.initIp4(.{ 127, 0, 0, 1 }, 3306),
@@ -15,22 +31,16 @@ pub const DB = struct {
     multi_statements: bool = false,
 };
 
-pub const App = struct {
-    debug: bool = false,
-    public_path: []const u8 = "",
-    max_bytes_public_content: usize = std.math.pow(usize, 2, 20),
-};
-
-pub const Server = struct {
-    port: ?u16 = null,
-    address: ?[]const u8 = null,
-};
-
 pub const config = struct {
     pub const app = App{
         .debug = true,
         .public_path = "resources/static",
         .max_bytes_public_content = std.math.pow(usize, 2, 20),
+    };
+    
+    pub const auth = Auth{
+        .key = "qwedrftgfrt5rtfgtr4rtgfrt56yjws1",
+        .iv = "tyhgfvbnhjuiklw3",
     };
 
     pub const db = DB{

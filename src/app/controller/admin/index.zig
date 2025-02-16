@@ -12,7 +12,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     var data = views.datas(res.arena);
     defer data.deinit();
 
-    try views.view(res, "admin/index", &data);
+    try views.view(res, "admin/index/index", &data);
 }
 
 

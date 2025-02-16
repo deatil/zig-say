@@ -12,6 +12,7 @@ const config = lib.global.config;
 const mime = lib.global.mime;
 
 const Logger = @import("./app/middleware/Logger.zig");
+const AdminAuth = @import("./app/middleware/AdminAuth.zig");
 const route = @import("./app/route/route.zig").route;
 
 pub fn main() !void {
@@ -41,7 +42,8 @@ pub fn main() !void {
 
     // middleware
     const logger = try server.middleware(Logger, .{ .query = true, .debug = config.app.debug });
-    router.middlewares = &.{logger};
+    const admin_auth = try server.middleware(AdminAuth, .{ .debug = config.app.debug });
+    router.middlewares = &.{logger, admin_auth};
 
     route(router);
 

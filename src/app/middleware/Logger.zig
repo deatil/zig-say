@@ -39,7 +39,7 @@ pub fn execute(self: *const Logger, req: *httpz.Request, res: *httpz.Response, e
 
         defer {
             const elapsed = std.time.microTimestamp() - start;
-            std.log.info("[{s}]\t{s}{s}{s}\t{d}\t{d}us", .{now_datetime, req.url.path, if (self.query and req.url.query.len > 0) "?" else "", if (self.query) req.url.query else "", res.status, elapsed});
+            std.log.info("[{s}]\t{s}\t{s}{s}{s}\t{d}\t{d}us", .{now_datetime, @tagName(req.method), req.url.path, if (self.query and req.url.query.len > 0) "?" else "", if (self.query) req.url.query else "", res.status, elapsed});
         }
     }
 
