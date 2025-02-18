@@ -27,7 +27,6 @@ pub fn getList(alloc: Allocator, conn: *Conn) !ResultSet(BinaryResultRow) {
     const query =
         \\SELECT name, value, remark
         \\FROM say_setting
-        \\ORFER BY name ASC
     ;
     const prep_res = try conn.prepare(alloc, query);
     defer prep_res.deinit(alloc);

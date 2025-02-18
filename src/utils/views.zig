@@ -53,5 +53,5 @@ pub fn errorView(res: *httpz.Response, msg: []const u8, url: []const u8) !void  
     try body.put("message", data.string(msg));
     try body.put("url", data.string(url));
 
-    try view(res, "index/error", &data);
+    try view(res, "index/error/index", &data);
 }

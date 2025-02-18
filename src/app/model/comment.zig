@@ -261,3 +261,53 @@ pub fn deleteInfo(alloc: Allocator, conn: *Conn, id: u32) !bool {
 
     return false;
 }
+
+pub fn getListByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32, where: QueryWhere) !ResultSet(BinaryResultRow) {
+    const query =
+        \\SELECT c.*, u.username, u.sign as user_sign
+        \\FROM say_comment c
+        \\LEFT JOIN say_user u ON u.id = c.user_id
+        \\WHERE c.topic_id = ? AND c.status = 1
+        \\ORDER BY ?
+        \\LIMIT ?, ?
+    ;
+
+    const params = .{topic_id, where.order, where.offset, where.limit};
+
+    const prep_res = try conn.prepare(alloc, query);
+    defer prep_res.deinit(alloc);
+    const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+    const query_res = try conn.executeRows(&prep_stmt, params); 
+    const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
+
+    return rows;
+}
+
+pub fn getCountByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32) !u64 {
+    const query =
+        \\SELECT count(id) as n
+        \\FROM say_comment
+        \\WHERE topic_id = ? AND status = 1
+        \\LIMIT 1
+    ;
+
+    const params = .{topic_id};
+
+    const prep_res = try conn.prepare(alloc, query);
+    defer prep_res.deinit(alloc);
+    const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+    const query_res = try conn.executeRows(&prep_stmt, params); 
+    const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
+
+    const first_info = try rows.first();
+    if (first_info) |val| {
+        var resultCount: ResultCount = undefined;
+        try val.scan(&resultCount);
+
+        return resultCount.n;
+    }
+
+    return 0;
+}
