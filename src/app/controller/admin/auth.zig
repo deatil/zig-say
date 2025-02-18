@@ -13,7 +13,19 @@ const admin_model = model.admin;
 
 pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = app;
-    _ = req;
+
+    var cookies = req.cookies();
+    const login_data = cookies.get("admin_login") orelse "";
+    if (login_data.len > 0) {
+        const login_username = auth.decrypt(res.arena, login_data, config.auth.key, config.auth.iv) catch "";
+        if (login_username.len > 0) {
+            res.status = 303;
+            res.header("Location", "/admin/index");
+            return;
+        } else {
+            try http.delCookie(res, "admin_login");
+        }
+    }
 
     var data = views.datas(res.arena);
     defer data.deinit();
@@ -22,45 +34,49 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
+    var cookies = req.cookies();
+    const login_data = cookies.get("admin_login") orelse "";
+
+    const login_username = auth.decrypt(res.arena, login_data, config.auth.key, config.auth.iv) catch "";
+    if (login_username.len > 0) {
+        try res.json(.{
+            .code = 1,
+            .msg = "你已经登录了",
+        }, .{});
+    }
+    
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "username empty",
+            .msg = "账号不能为空",
         }, .{});
         return;
     }
 
     const fd = try http.parseFormData(res.arena, req.body().?);
 
-    if (fd.get("username") == null) {
+    const username = fd.get("username") orelse "";
+    const password = fd.get("password") orelse "";
+
+    if (username.len == 0 or password.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "username empty",
-        }, .{});
-        return;
-    }
-    if (fd.get("password") == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "password empty",
+            .msg = "账号或者密码不能为空",
         }, .{});
         return;
     }
 
-    const username = fd.get("username").?;
-    const password = fd.get("password").?;
-
-    const admin_info = admin_model.getInfoByUsername(res.arena, app, username) catch {
+    const admin_info = admin_model.getInfoByUsername(res.arena, app.db, username) catch {
         try res.json(.{
             .code = 1,
-            .msg = "user or pass not exists",
+            .msg = "账号或者密码错误",
         }, .{});
         return;
     };
     if (admin_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "user or pass not exists",
+            .msg = "账号或者密码错误",
         }, .{});
         return;
     }
@@ -68,7 +84,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!auth.checkPasswordHash(password, admin_info.password)) {
         try res.json(.{
             .code = 1,
-            .msg = "user or pass not exists",
+            .msg = "账号或者密码错误",
         }, .{});
         return;
     }
@@ -76,22 +92,34 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const username_encoded = auth.encrypt(res.arena, admin_info.username, config.auth.key, config.auth.iv) catch {
         try res.json(.{
             .code = 1,
-            .msg = "user or pass not exists",
+            .msg = "账号或者密码错误",
         }, .{});
         return;
     };
 
-    try res.setCookie("admin_login", username_encoded, .{
-        .path = "/",
-        .max_age = 1_000_000_000,
-        .http_only = true,
-        .partitioned = true,
-        .same_site = .none,  // or .none, or .strict (or null to leave out)
-    });
+    try http.setCookie(res, "admin_login", username_encoded);
 
     try res.json(.{
         .code = 0,
-        .msg = "login success",
+        .msg = "登录成功",
     }, .{});
 }
 
+pub fn logout(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
+    _ = app;
+
+    var cookies = req.cookies();
+    const login_data = cookies.get("admin_login") orelse "";
+
+    const login_username = auth.decrypt(res.arena, login_data, config.auth.key, config.auth.iv) catch "";
+    if (login_username.len > 0) {
+        try http.delCookie(res, "admin_login");
+
+        res.status = 303;
+        res.header("Location", "/admin/auth/login");
+        return;
+    }
+
+    res.status = 303;
+    res.header("Location", "/admin/auth/login");
+}

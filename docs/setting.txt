@@ -1,0 +1,8 @@
+website_name : mytools
+website_keywords : mytools,md5,sha1,sha3,hmac，编码解码,rsa
+website_description : 各种编码算法，证书生成，数据解析
+website_copyright : mytools
+website_status : 1
+website_beian : 
+website_url : http://www.domain.com
+website_stat : 

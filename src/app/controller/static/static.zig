@@ -43,7 +43,7 @@ fn matchPublicContent(alloc: Allocator, app: *App, request: *httpz.Request) !?St
             return null;
         };
 
-    var open_file = std.fs.cwd().openFile(absolute_path, .{}) catch {
+    var open_file = std.fs.cwd().openFile(absolute_path, .{ .mode = .read_only }) catch {
        return null;
     };
     defer open_file.close();

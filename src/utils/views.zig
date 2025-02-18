@@ -32,7 +32,26 @@ pub fn view(resp: *httpz.Response, tpl: []const u8, data: *zmpl.Data) !void {
     } else {
         resp.status = 200;
         resp.header("content-type", "text/html");
-        resp.body = "Not Found";
+        resp.body = "View Not Found";
     }
 }
 
+pub fn errorAdminView(res: *httpz.Response, msg: []const u8, url: []const u8) !void  {
+    var data = datas(res.arena);
+
+    var body = try data.object();
+    try body.put("message", data.string(msg));
+    try body.put("url", data.string(url));
+
+    try view(res, "admin/error/index", &data);
+}
+
+pub fn errorView(res: *httpz.Response, msg: []const u8, url: []const u8) !void  {
+    var data = datas(res.arena);
+
+    var body = try data.object();
+    try body.put("message", data.string(msg));
+    try body.put("url", data.string(url));
+
+    try view(res, "index/error", &data);
+}

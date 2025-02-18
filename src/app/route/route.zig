@@ -2,7 +2,6 @@ const lib = @import("say-lib");
 const config = lib.global.config;
 
 const controller = @import("./../controller/lib.zig");
-const user_controller = controller.user;
 
 const index = controller.index;
 const admin = controller.admin;
@@ -10,7 +9,6 @@ const static = controller.static;
 
 pub fn route(router: anytype) void {
     indexRoute(router);
-    indexRoute2(router);
 
     adminRoute(router);
     staticRoute(router);
@@ -20,19 +18,44 @@ pub fn indexRoute(router: anytype) void {
     router.get("/", index.index.index, .{});
 }
 
-pub fn indexRoute2(router: anytype) void {
-    router.get("/user/list", user_controller.getUser, .{});
-    router.get("/user/info/:id", user_controller.getUserInfo, .{});
-    router.get("/user/add", user_controller.addUser, .{});
-    router.get("/user/del/:id", user_controller.deleteUser, .{});
-    router.get("/user/update/:id", user_controller.updateUser, .{});
-}
-
 pub fn adminRoute(router: anytype) void {
     router.get("/admin/auth/login", admin.auth.login, .{});
     router.post("/admin/auth/login", admin.auth.loginSave, .{});
+    router.get("/admin/auth/logout", admin.auth.logout, .{});
 
     router.get("/admin/index", admin.index.index, .{});
+    router.get("/admin/console", admin.index.console, .{});
+
+    // profile
+    router.get("/admin/profile/password", admin.profile.password, .{});
+    router.post("/admin/profile/password", admin.profile.passwordSave, .{});
+
+    // setting
+    router.get("/admin/setting", admin.setting.index, .{});
+    router.post("/admin/setting", admin.setting.save, .{});
+
+    // user
+    router.get("/admin/user/index", admin.user.index, .{});
+    router.get("/admin/user/list", admin.user.list, .{});
+    router.get("/admin/user/add", admin.user.add, .{});
+    router.post("/admin/user/add", admin.user.addSave, .{});
+    router.get("/admin/user/edit", admin.user.edit, .{});
+    router.post("/admin/user/edit", admin.user.editSave, .{});
+    router.post("/admin/user/del", admin.user.del, .{});
+
+    // topic
+    router.get("/admin/topic/index", admin.topic.index, .{});
+    router.get("/admin/topic/list", admin.topic.list, .{});
+    router.get("/admin/topic/edit", admin.topic.edit, .{});
+    router.post("/admin/topic/edit", admin.topic.editSave, .{});
+    router.post("/admin/topic/del", admin.topic.del, .{});
+
+    // comment
+    router.get("/admin/comment/index", admin.comment.index, .{});
+    router.get("/admin/comment/list", admin.comment.list, .{});
+    router.get("/admin/comment/edit", admin.comment.edit, .{});
+    router.post("/admin/comment/edit", admin.comment.editSave, .{});
+    router.post("/admin/comment/del", admin.comment.del, .{});
 }
 
 pub fn staticRoute(router: anytype) void {

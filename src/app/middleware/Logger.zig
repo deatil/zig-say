@@ -1,6 +1,8 @@
 const std = @import("std");
 const httpz = @import("httpz");
-const zig_time = @import("zig-time");
+
+const lib = @import("say-lib");
+const time = lib.utils.time;
 
 const Logger = @This();
 
@@ -34,7 +36,7 @@ pub fn execute(self: *const Logger, req: *httpz.Request, res: *httpz.Response, e
     if (self.debug) {
         const start = std.time.microTimestamp();
 
-        const now_datetime = try zig_time.now().utc().formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
+        const now_datetime = try time.now().formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
         defer res.arena.free(now_datetime);
 
         defer {

@@ -1,11 +1,13 @@
 const std = @import("std");
+
+const zig_time = @import("zig-time");
 const myzql = @import("myzql");
 const constants = myzql.constants;
 
 pub const App = struct {
     debug: bool = false,
     public_path: []const u8 = "",
-    max_bytes_public_content: usize = std.math.pow(usize, 2, 20),
+    loc: zig_time.Location = zig_time.CTT,
 };
 
 pub const Server = struct {
@@ -35,7 +37,7 @@ pub const config = struct {
     pub const app = App{
         .debug = true,
         .public_path = "resources/static",
-        .max_bytes_public_content = std.math.pow(usize, 2, 20),
+        .loc = zig_time.CTT,
     };
     
     pub const auth = Auth{

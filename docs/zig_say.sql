@@ -1,4 +1,12 @@
-﻿
+﻿# Host: localhost  (Version: 5.7.44)
+# Date: 2025-02-17 12:56:06
+# Generator: MySQL-Front 5.3  (Build 4.234)
+
+/*!40101 SET NAMES utf8 */;
+
+#
+# Structure for table "say_admin"
+#
 
 DROP TABLE IF EXISTS `say_admin`;
 CREATE TABLE `say_admin` (

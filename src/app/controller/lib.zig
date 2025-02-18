@@ -1,5 +1,3 @@
-pub const user = @import("./user.zig");
-
 // index
 pub const index = @import("./index/lib.zig");
 
