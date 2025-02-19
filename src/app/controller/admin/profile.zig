@@ -24,7 +24,7 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "update data empty",
+            .msg = "提交数据不能为空",
         }, .{});
         return;
     }
@@ -38,21 +38,21 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
     if (oldpassword.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "old password not empty",
+            .msg = "旧密码不能为空",
         }, .{});
         return;
     }
     if (newpassword.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "new password not empty",
+            .msg = "新密码不能为空",
         }, .{});
         return;
     }
     if (!std.mem.eql(u8, newpassword, newpassword2)) {
         try res.json(.{
             .code = 1,
-            .msg = "newpassword2 not eq newpassword",
+            .msg = "确认密码不一致",
         }, .{});
         return;
     }
@@ -62,7 +62,7 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
     const admin_info = admin_model.getInfoByUsername(res.arena, app.db, admin_login) catch {
         try res.json(.{
             .code = 1,
-            .msg = "update pass fail",
+            .msg = "更改密码失败",
         }, .{});
         return;
     };
@@ -70,7 +70,7 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
     if (!auth.checkPasswordHash(oldpassword, admin_info.password)) {
         try res.json(.{
             .code = 1,
-            .msg = "oldpassword error",
+            .msg = "旧密码不匹配",
         }, .{});
         return;
     }
@@ -81,14 +81,14 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "update password fail",
+            .msg = "更改密码失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "update password success",
+        .msg = "更改密码成功",
     }, .{});
 }
 

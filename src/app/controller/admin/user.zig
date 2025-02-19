@@ -68,7 +68,7 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try res.json(.{
         .code = 0,
-        .msg = "login success",
+        .msg = "获取成功",
         .data = .{
             .list = users,
             .count = count,
@@ -90,7 +90,7 @@ pub fn addSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "add data empty",
+            .msg = "提交数据不能为空",
         }, .{});
         return;
     }
@@ -101,7 +101,7 @@ pub fn addSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (cookie.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "cookie empty",
+            .msg = "账号不能为空",
         }, .{});
         return;
     }
@@ -119,14 +119,14 @@ pub fn addSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "add data fail",
+            .msg = "添加账号失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "add data success",
+        .msg = "添加账号成功",
     }, .{});
 }
 
@@ -135,13 +135,13 @@ pub fn edit(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const id = query.get("id") orelse "";
     const new_id = std.fmt.parseInt(u32, id, 10) catch 0;
     if (new_id == 0) {
-        try views.errorAdminView(res, "id error", "");
+        try views.errorAdminView(res, "id 错误", "");
         return;
     }
 
     const user_info = user_model.getInfoById(res.arena, app.db, new_id) catch user_model.User{};
     if (user_info.id == 0) {
-        try views.errorAdminView(res, "id error", "");
+        try views.errorAdminView(res, "id 错误", "");
         return;
     }
 
@@ -160,7 +160,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (new_id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "id 错误",
         }, .{});
         return;
     }
@@ -169,7 +169,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (user_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "账号数据不存在",
         }, .{});
         return;
     }
@@ -177,7 +177,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "update data empty",
+            .msg = "提交数据不能为空",
         }, .{});
         return;
     }
@@ -192,14 +192,14 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (username.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "username empty",
+            .msg = "账号不能为空",
         }, .{});
         return;
     }
     if (cookie.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "cookie empty",
+            .msg = "Cookie不能为空",
         }, .{});
         return;
     }
@@ -213,14 +213,14 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "update user fail",
+            .msg = "更改账号失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "update user success",
+        .msg = "更改账号成功",
     }, .{});
 }
 
@@ -231,7 +231,7 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (new_id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "id 错误",
         }, .{});
         return;
     }
@@ -240,7 +240,7 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (user_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "user not exists",
+            .msg = "账号数据不存在",
         }, .{});
         return;
     }
@@ -249,13 +249,13 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "delete fail",
+            .msg = "删除账号失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "delete user success",
+        .msg = "删除账号成功",
     }, .{});
 }

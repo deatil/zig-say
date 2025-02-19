@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>用户管理</title>
+		<title>话题管理</title>
 		<link rel="stylesheet" href="/static/admin/component/pear/css/pear.css" />
 	</head>
 	<body class="pear-container">
@@ -11,7 +11,7 @@
 				<form class="layui-form" action="">
 					<div class="layui-form-item">
 						<div class="layui-form-item layui-inline">
-							<label class="layui-form-label">keywords</label>
+							<label class="layui-form-label">关键字</label>
 							<div class="layui-input-inline">
 								<input type="text" name="keywords" placeholder="" class="layui-input">
 							</div>
@@ -71,19 +71,20 @@
 							title: '#',
 							field: 'id',
 							align: 'left',
+							width: 60,
 						},
 						{
-							title: 'Topic',
+							title: '标题',
 							field: 'title',
 							align: 'left',
 						},
 						{
-							title: 'Username',
+							title: '用户',
 							field: 'username',
 							align: 'left',
 						},
 						{
-							title: 'Add时间',
+							title: '添加时间',
 							field: 'createTime',
 							align: 'left',
 							templet: function(d) {
@@ -169,7 +170,7 @@
 				}
 
 				window.remove = function(obj) {
-					layer.confirm('确定要删除该Topic', {
+					layer.confirm('确定要删除该话题', {
 						icon: 3,
 						title: '提示'
 					}, function(index) {

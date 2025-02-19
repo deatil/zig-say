@@ -35,8 +35,8 @@ pub const TopicUser = struct {
     add_time: u32 = 0,
     add_ip: []const u8 = "",
 
-    username: []const u8 = "",
-    user_sign: []const u8 = "",
+    username: ?[]const u8 = "",
+    user_sign: ?[]const u8 = "",
 };
 
 pub const QueryWhere = struct {
@@ -44,7 +44,7 @@ pub const QueryWhere = struct {
     limit: u32 = 10,
     keywords: []const u8 = "",
     status: ?u16 = null,
-    order: []const u8 = "id ASC",
+    order: []const u8 = "t.id ASC",
 };
 
 pub const ResultCount = struct {
@@ -58,7 +58,7 @@ pub fn getList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(Bina
             \\FROM say_topic t
             \\LEFT JOIN say_user u ON u.id = t.user_id
             \\WHERE t.title LIKE ? AND t.status = ?
-            \\ORDER BY ?
+            \\ORDER BY ? 
             \\LIMIT ?, ?
         ;
 
@@ -86,6 +86,34 @@ pub fn getList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(Bina
 
     const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
     const params = .{new_keywords, where.order, where.offset, where.limit};
+
+    const prep_res = try conn.prepare(alloc, query);
+    defer prep_res.deinit(alloc);
+    const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
+
+    const query_res = try conn.executeRows(&prep_stmt, params); 
+    const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
+
+    return rows;
+}
+
+pub fn getNewList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(BinaryResultRow) {
+    const query =
+        \\SELECT t.*, u.username, u.sign as user_sign
+        \\FROM say_topic t
+        \\LEFT JOIN say_user u ON u.id = t.user_id
+        \\WHERE t.title LIKE ? AND t.status = ?
+        \\ORDER BY t.id DESC
+        \\LIMIT ?, ?
+    ;
+
+    var status: u16 = 1;
+    if (where.status) |s| {
+        status = s;
+    }
+
+    const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
+    const params = .{new_keywords, status, where.offset, where.limit};
 
     const prep_res = try conn.prepare(alloc, query);
     defer prep_res.deinit(alloc);

@@ -10,14 +10,14 @@ var menus = [
 	},
 	{
 		"id": "arts",
-		"title": "文章管理",
+		"title": "话题管理",
 		"icon": "layui-icon layui-icon-app",
 		"type": 0,
 		"href": "",
 		"children": [
 			{
 				"id": "art",
-				"title": "文章列表",
+				"title": "话题列表",
 				"icon": "layui-icon layui-icon-face-smile",
 				"type": 1,
 				"openType": "_iframe",

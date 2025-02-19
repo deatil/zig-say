@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-		<title>Zig Say 后台</title>
+		<title>{{context.webname}} 后台管理</title>
 		<link rel="stylesheet" href="/static/admin/admin/css/other/icon.css">
 		<!-- 依 赖 样 式 -->
 		<link rel="stylesheet" href="/static/admin/component/pear/css/pear.css" />
@@ -103,7 +103,7 @@
 				
 				admin.render({
 					"logo": {
-						"title": "Zig Say",
+						"title": "{{context.webname}}",
 						"image": "/static/admin/admin/images/logo.png"
 					},
 					"menu": {

@@ -21,10 +21,10 @@
 							<div class="layui-card-body">
 								<div class="layui-row layui-col-space10">
 									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
-										<div class="pear-card" data-id="art" data-title="文章列表" data-url="/admin/topic/index">
+										<div class="pear-card" data-id="art" data-title="话题列表" data-url="/admin/topic/index">
 											<i class="layui-icon layui-icon-app"></i>
 										</div>
-										<span class="pear-card-title">文章</span>
+										<span class="pear-card-title">话题</span>
 									</div>
 									<div class="layui-col-md3 layui-col-sm3 layui-col-xs3">
 										<div class="pear-card" data-id="comment" data-title="评论管理" data-url="/admin/comment/index">
@@ -51,7 +51,7 @@
 								<div class="layui-row layui-col-space10">
 									<div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
 										<div class="pear-card2">
-											<div class="title">文章数量</div>
+											<div class="title">话题数量</div>
 											<div class="count pear-text">{{ $.topic_count }}</div>
 										</div>
 									</div>
@@ -79,7 +79,7 @@
 
 			<div class="layui-col-md4">
 				<div class="layui-card">
-					<div class="layui-card-header">最新文章</div>
+					<div class="layui-card-header">最新话题</div>
 					<div class="layui-card-body">
 						<ul class="pear-card-status">
 							@for ($.new_topics) |new_topic| {

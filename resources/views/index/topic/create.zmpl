@@ -4,48 +4,46 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>添加Topic</title>
+    <title>添加话题 - {{context.webname}}</title>
     <link rel="stylesheet icon" href="/static/topic/img/favicon.ico" />
-    <link rel="stylesheet" type="text/css" href="/static/topic/js/bootstrap/bootstrap.css">
-    <link href="/static/topic/css/top.css" rel="stylesheet" type="text/css">
+
+    @partial index/common/head
 </head>
 
 <body>
-    @partial index/common/top_nav
+    @partial index/common/top_nav($.loginid)
     
-    <div class="container zone">
+    <div class="container topic">
         <div class="row">
             <div class="col-lg-9">
                 <ol class="breadcrumb">
                     <li><a href="/">首页</a></li>
-                    <li class="active">添加Topic</li>
+                    <li class="active">添加话题</li>
                 </ol>
                 
-                <div class="zone-content">
+                <div class="topic-content">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            添加Topic
+                            添加话题
                         </div>
                         <div class="panel-body">
-                            <form action="" method="post" id="data-form" class="form-horizontal">
+                            <form action="" method="post" id="data-form">
                                 <div class="form-group">
-                                    <label for="link-title" class="col-sm-2 control-label">Title</label>
-                                    <div class="col-sm-10">
+                                    <label for="link-title">标题</label>
+                                    <div>
                                         <input type="text" name="title" value="" class="form-control" id="topic-title" placeholder="">
                                     </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="topic-image" class="col-sm-2 control-label">content</label>
-                                    <div class="col-sm-10">
-                                        <textarea class="form-control" name="content" rows="3"></textarea>
+                                    <label for="topic-content">内容</label>
+                                    <div>
+                                        <textarea class="form-control" id="topic-content" name="content" rows="5"></textarea>
                                     </div>
                                 </div>
 
                                 <div class="form-group">
-                                    <div class="col-sm-offset-2 col-sm-10">
-                                        <button type="button" class="btn btn-primary js-save-btn">提交</button>
-                                    </div>
+                                    <button type="button" class="btn btn-primary px-5 py-2 js-save-btn">提交</button>
                                 </div>
                             </form>
                         </div>
@@ -56,14 +54,15 @@
             <div class="col-lg-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        Create Topic
+                        快捷操作
                     </div>
-                    <div class="panel-body">
-                        <ul class="nav nav-pills nav-stacked">
-                            <li role="presentation" class="link-all">
-                                <a href="/topic/create">Create</a>
-                            </li>
-                        </ul>
+                    <div class="panel-body text-center">
+                        <a href="/topic/create"
+                            class="btn btn-primary"
+                            style="width: 185px; padding: 13px 0; border-radius:3px"
+                        >
+                            创建话题
+                        </a>
                     </div>
                 </div>
 
@@ -71,6 +70,8 @@
             
         </div>
     </div>
+
+    @partial index/common/footer
     
     <script type="text/javascript" src="/static/topic/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/topic/js/layer/layer.js"></script>

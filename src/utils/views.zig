@@ -11,8 +11,8 @@ pub fn datas(allocator: Allocator) zmpl.Data {
 }
 
 pub fn view(resp: *httpz.Response, tpl: []const u8, data: *zmpl.Data) !void {
-    const Context = struct { foo: []const u8 = "default" };
-    const context = Context { .foo = "bar" };
+    const Context = struct { webname: []const u8 = "zig-say" };
+    const context = Context { .webname = "Zig-say" };
 
     try data.addConst("say_view", data.string("test"));
     defer data.deinit();

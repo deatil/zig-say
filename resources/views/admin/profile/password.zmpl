@@ -32,11 +32,11 @@
                         </div>
         
                         <div class="layui-form-item">
-                            <label class="layui-form-label">确认密码</label>
+                            <label class="layui-form-label">确认新密码</label>
                             <div class="layui-input-block">
                                 <input type="password" name="newpassword2" 
                                     lay-verify="title" autocomplete="off" 
-                                    placeholder="请输入确认密码" class="layui-input">
+                                    placeholder="请输入确认新密码" class="layui-input">
                             </div>
                         </div>
         

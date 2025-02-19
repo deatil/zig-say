@@ -114,10 +114,6 @@ pub fn logout(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const login_username = auth.decrypt(res.arena, login_data, config.auth.key, config.auth.iv) catch "";
     if (login_username.len > 0) {
         try http.delCookie(res, "admin_login");
-
-        res.status = 303;
-        res.header("Location", "/admin/auth/login");
-        return;
     }
 
     res.status = 303;

@@ -11,7 +11,7 @@
             <div class="main-container">
                 <div class="main-container">
                     <div class="layui-form-item">
-                        <label class="layui-form-label">title</label>
+                        <label class="layui-form-label">标题</label>
                         <div class="layui-input-block">
                             <input type="text" name="title" value="{{ $.data.title }}" 
                                 lay-verify="title" autocomplete="off" placeholder="" class="layui-input">
@@ -19,14 +19,14 @@
                     </div>
     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">content</label>
+                        <label class="layui-form-label">内容</label>
                         <div class="layui-input-block">
                             <textarea name="content" placeholder="" class="layui-textarea">{{ $.data.content }}</textarea>
                         </div>
                     </div>
     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">views</label>
+                        <label class="layui-form-label">阅读量</label>
                         <div class="layui-input-block">
                             <input type="text"  name="views" value="{{ $.data.views }}" 
                                 lay-verify="title" autocomplete="off" placeholder="" class="layui-input">

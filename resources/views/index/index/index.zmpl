@@ -4,36 +4,33 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>文章 - Zig-say</title>
+    <title>{{context.webname}}</title>
     <link rel="stylesheet icon" href="/static/webnav/img/favicon.ico" />
     
     @partial index/common/head
+
+    <style>
+    .topic-page-item {
+        border-bottom: 1px solid #edeeef;
+    }
+    </style>
 </head>
 
 <body>
-    @partial index/common/top_nav
+    @partial index/common/top_nav($.loginid)
 
     <div class="container topic">
         <div class="row">
             <div class="col-lg-9">
-                <ol class="breadcrumb">
-                    <li>
-                        <a href="/">
-                            <i class="fa fa-home" aria-hidden="true"></i> 首页
-                        </a>
-                    </li>
-                    <li class="active">文章</li>
-                </ol>
-                
                 <div class="topic-content">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            文章列表
+                            最新话题
                         </div>
                         <div class="panel-body">
-                            <div class="art-page-items">
+                            <div class="topic-page-items">
                                 @for ($.topics) |topic| {
-                                <div class="media art-page-item">
+                                <div class="media topic-page-item">
                                     <div class="media-body">
                                         <h4 class="media-heading">
                                             <a href="/topic/{{ topic.id }}">
@@ -42,13 +39,14 @@
                                         </h4>
                                         
                                         <p class="text-muted">
-                                            <span class="art-author">
-                                                <i class="fa fa-user" aria-hidden="true"></i>  
-                                                {{ topic.username }}
-                                            </span>
-                                            <span class="art-datetime ml-3">
+                                            <span class="topic-datetime">
                                                 <i class="fa fa-clock-o" aria-hidden="true"></i>  
                                                 {{ topic.add_time }}
+                                            </span>
+
+                                            <span class="topic-author ml-3">
+                                                <i class="fa fa-user" aria-hidden="true"></i>  
+                                                {{ topic.username }}
                                             </span>
                                         </p>
                                     </div>
@@ -57,19 +55,23 @@
                             </div>
                             
                             @if ($.pages > 1) 
-                            <div class="art-page">
+                            <div class="topic-page">
                                 <nav aria-label="Page navigation">
                                     <ul class="pager">
                                         @if ($.page > 1 and $.pages > 1) 
-                                            <li><a href="/?page={{ $.page - 1 }}">Previous</a></li>
-                                        @else
-                                            <li class="disabled"><a href="#">Previous</a></li>
+                                            <li><a href="/?page={{ $.comment_page1 }}">上一页</a></li>
+                                        @end
+
+                                        @if (!($.page > 1 and $.pages > 1))
+                                            <li class="disabled"><a href="#">上一页</a></li>
                                         @end
 
                                         @if ($.page < $.pages and $.pages > 1) 
-                                            <li><a href="/?page={{ $.page + 1 }}">Next</a></li>
-                                        @else
-                                            <li class="disabled"><a href="#">Next</a></li>
+                                            <li><a href="/?page={{ $.comment_page2 }}">下一页</a></li>
+                                        @end
+                                        
+                                        @if (!($.page < $.pages and $.pages > 1))
+                                            <li class="disabled"><a href="#">下一页</a></li>
                                         @end
                                     </ul>
                                 </nav>
@@ -83,14 +85,15 @@
             <div class="col-lg-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        Create Topic
+                        快捷操作
                     </div>
-                    <div class="panel-body">
-                        <ul class="nav nav-pills nav-stacked">
-                            <li role="presentation" class="link-all">
-                                <a href="/topic/create">Create</a>
-                            </li>
-                        </ul>
+                    <div class="panel-body text-center">
+                        <a href="/topic/create"
+                            class="btn btn-primary"
+                            style="width: 185px; padding: 13px 0; border-radius:3px"
+                        >
+                            创建话题
+                        </a>
                     </div>
                 </div>
 

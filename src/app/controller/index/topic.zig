@@ -16,15 +16,27 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const id = req.param("id") orelse "0";
     const new_id = std.fmt.parseInt(u32, id, 10) catch 0;
     if (new_id == 0) {
-        try views.errorView(res, "id error", "");
+        try views.errorView(res, "页面不存在", "");
         return;
     }
 
+    var data = views.datas(res.arena);
+
+    var body = try data.object();
+
     const topic_info = topic_model.getInfoById(res.arena, app.db, new_id) catch topic_model.TopicUser{};
     if (topic_info.id == 0) {
-        try views.errorView(res, "topic not exists", "");
+        try views.errorView(res, "话题不存在", "");
         return;
     }
+
+    var topic = try data.object();
+    try topic.put("id", data.integer(topic_info.id));
+    try topic.put("title", data.string(topic_info.title));
+    try topic.put("username", data.string(topic_info.username orelse "[empty]"));
+    try topic.put("content", data.string(topic_info.content));
+
+    try body.put("topic", topic);
 
     const query = try req.query();
 
@@ -38,10 +50,6 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .status = 1,
     });
 
-    var data = views.datas(res.arena);
-
-    var body = try data.object();
-
     var comments = try data.array();
 
     const rows_iter = lists.iter();
@@ -52,7 +60,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
             try comments.append(.{ 
                 .content = comment.content,
-                .username = comment.username,
+                .username = comment.username orelse "[empty]",
                 .add_time = try zig_time.Time.fromTimestamp(@as(i64, @intCast(comment.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
            });
         }
@@ -60,29 +68,39 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try body.put("comments", comments);
 
-    var topic = try data.object();
-    try topic.put("title", data.string(topic_info.title));
-    try topic.put("username", data.string(topic_info.username));
-    try topic.put("content", data.string(topic_info.content));
-
-    try body.put("topic", topic);
-
     const topic_time = try zig_time.Time.fromTimestamp(@as(i64, @intCast(topic_info.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
     try body.put("topic_time", data.string(topic_time));
 
     const comment_count = try comment_model.getCountByTopicId(res.arena, app.db, new_id);
+    const comment_pages = try std.math.divCeil(u64, comment_count, 10);
 
     try body.put("comment_page", data.integer(new_page));
-    try body.put("comment_pages", data.integer(@divTrunc(comment_count, 10)));
+    try body.put("comment_pages", data.integer(comment_pages));
+    try body.put("comment_count", data.integer(comment_count));
+
+    if (new_page > 1 and comment_pages > 1) {
+        try body.put("comment_page1", data.integer(new_page - 1));
+    }
+    if (new_page < comment_pages and comment_pages > 1) {
+        try body.put("comment_page2", data.integer(new_page + 1));
+    }
+
+    var cookies = req.cookies();
+    const loginid = cookies.get("loginid") orelse "";
+    try body.put("loginid", data.string(loginid));
 
     try views.view(res, "index/topic/view", &data);
 }
 
 pub fn create(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = app;
-    _ = req;
 
     var data = views.datas(res.arena);
+    var body = try data.object();
+
+    var cookies = req.cookies();
+    const loginid = cookies.get("loginid") orelse "";
+    try body.put("loginid", data.string(loginid));
 
     try views.view(res, "index/topic/create", &data);
 }
@@ -91,7 +109,7 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "update data empty",
+            .msg = "发表评论失败",
         }, .{});
         return;
     }
@@ -104,14 +122,14 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (title.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "title empty",
+            .msg = "标题不能为空",
         }, .{});
         return;
     }
     if (content.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "content empty",
+            .msg = "内容不能为空",
         }, .{});
         return;
     }
@@ -123,7 +141,7 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (user_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "need login",
+            .msg = "请先登录",
         }, .{});
         return;
     }
@@ -142,14 +160,14 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "create topic fail",
+            .msg = "发表话题失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "create topic success",
+        .msg = "发表话题成功",
     }, .{});
 }
 
@@ -157,7 +175,7 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "comment data empty",
+            .msg = "回复话题失败",
         }, .{});
         return;
     }
@@ -170,14 +188,14 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (topic_id.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "topic_id empty",
+            .msg = "回复话题失败",
         }, .{});
         return;
     }
     if (content.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "content empty",
+            .msg = "内容不能为空",
         }, .{});
         return;
     }
@@ -186,7 +204,7 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (new_topic_id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "topic_id error",
+            .msg = "回复话题失败",
         }, .{});
         return;
     }
@@ -198,7 +216,7 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (user_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "need login",
+            .msg = "请先登录",
         }, .{});
         return;
     }
@@ -216,14 +234,14 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "add comment fail",
+            .msg = "回复话题失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "add comment success",
+        .msg = "回复话题成功",
     }, .{});
 }
 

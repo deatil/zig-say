@@ -11,7 +11,7 @@
             <div class="main-container">
                 <div class="main-container">
                     <div class="layui-form-item">
-                        <label class="layui-form-label">topic_id</label>
+                        <label class="layui-form-label">话题ID</label>
                         <div class="layui-input-block">
                             <input type="text" disabled="disabled" value="{{ $.data.topic_id }}" 
                                 autocomplete="off" placeholder="" class="layui-input">
@@ -19,7 +19,7 @@
                     </div>
     
                     <div class="layui-form-item">
-                        <label class="layui-form-label">content</label>
+                        <label class="layui-form-label">内容</label>
                         <div class="layui-input-block">
                             <textarea name="content" placeholder="" class="layui-textarea">{{ $.data.content }}</textarea>
                         </div>

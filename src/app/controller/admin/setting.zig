@@ -41,7 +41,7 @@ pub fn save(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "update data empty",
+            .msg = "提交数据不能为空",
         }, .{});
         return;
     }
@@ -55,7 +55,7 @@ pub fn save(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try res.json(.{
         .code = 0,
-        .msg = "update setting success",
+        .msg = "设置更改成功",
     }, .{});
 }
 

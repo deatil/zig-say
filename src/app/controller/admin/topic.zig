@@ -68,7 +68,7 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try res.json(.{
         .code = 0,
-        .msg = "login success",
+        .msg = "获取成功",
         .data = .{
             .list = topics,
             .count = count,
@@ -82,13 +82,13 @@ pub fn edit(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const id = query.get("id") orelse "";
     const new_id = std.fmt.parseInt(u32, id, 10) catch 0;
     if (new_id == 0) {
-        try views.errorAdminView(res, "id error", "");
+        try views.errorAdminView(res, "id 错误", "");
         return;
     }
 
     const topic_info = topic_model.getInfoById(res.arena, app.db, new_id) catch topic_model.TopicUser{};
     if (topic_info.id == 0) {
-        try views.errorAdminView(res, "id error", "");
+        try views.errorAdminView(res, "id 错误", "");
         return;
     }
 
@@ -107,7 +107,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (new_id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "id 错误",
         }, .{});
         return;
     }
@@ -116,7 +116,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (topic_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "话题数据不存在",
         }, .{});
         return;
     }
@@ -124,7 +124,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (req.body() == null) {
         try res.json(.{
             .code = 1,
-            .msg = "update data empty",
+            .msg = "提交数据不能为空",
         }, .{});
         return;
     }
@@ -139,14 +139,14 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (title.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "title empty",
+            .msg = "标题不能为空",
         }, .{});
         return;
     }
     if (content.len == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "content empty",
+            .msg = "内容不能为空",
         }, .{});
         return;
     }
@@ -168,14 +168,14 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "update topic fail",
+            .msg = "更改话题失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "update topic success",
+        .msg = "更改话题成功",
     }, .{});
 }
 
@@ -186,7 +186,7 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (new_id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "id error",
+            .msg = "id 错误",
         }, .{});
         return;
     }
@@ -195,7 +195,7 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (topic_info.id == 0) {
         try res.json(.{
             .code = 1,
-            .msg = "topic not exists",
+            .msg = "话题数据不存在",
         }, .{});
         return;
     }
@@ -204,13 +204,13 @@ pub fn del(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "delete topic fail",
+            .msg = "删除话题失败",
         }, .{});
         return;
     }
 
     try res.json(.{
         .code = 0,
-        .msg = "delete topic success",
+        .msg = "删除话题成功",
     }, .{});
 }

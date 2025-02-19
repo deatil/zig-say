@@ -28,7 +28,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (loginid.len > 0) {
         try res.json(.{
             .code = 1,
-            .msg = "you have logined",
+            .msg = "你已经登录",
         }, .{});
         return;
     }
@@ -53,7 +53,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     if (!ok) {
         try res.json(.{
             .code = 1,
-            .msg = "login fail",
+            .msg = "登录失败",
         }, .{});
         return;
     }

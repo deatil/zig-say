@@ -11,7 +11,7 @@
 				<form class="layui-form" action="">
 					<div class="layui-form-item">
 						<div class="layui-form-item layui-inline">
-							<label class="layui-form-label">keywords</label>
+							<label class="layui-form-label">关键字</label>
 							<div class="layui-input-inline">
 								<input type="text" name="keywords" placeholder="" class="layui-input">
 							</div>
@@ -74,6 +74,12 @@
 
 				let cols = [
 					[
+						{
+							title: '#',
+							field: 'id',
+							align: 'left',
+							width: 60,
+						},
 						{
 							title: '账号',
 							field: 'username',

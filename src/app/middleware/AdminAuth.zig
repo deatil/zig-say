@@ -43,7 +43,7 @@ pub fn execute(self: *const AdminAuth, req: *httpz.Request, res: *httpz.Response
                     if (req.method == .POST) {
                         try res.json(.{
                             .code = 1,
-                            .msg = "need login",
+                            .msg = "请先登录",
                         }, .{});
                         return;
                     } else {
@@ -60,7 +60,7 @@ pub fn execute(self: *const AdminAuth, req: *httpz.Request, res: *httpz.Response
                     if (req.method == .POST) {
                         try res.json(.{
                             .code = 1,
-                            .msg = "need login",
+                            .msg = "请先登录",
                         }, .{});
                         return;
                     } else {

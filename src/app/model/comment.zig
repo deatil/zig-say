@@ -33,8 +33,8 @@ pub const CommentUser = struct {
     add_time: u32 = 0,
     add_ip: []const u8 = "",
 
-    username: []const u8 = "",
-    user_sign: []const u8 = "",
+    username: ?[]const u8 = "",
+    user_sign: ?[]const u8 = "",
 };
 
 pub const QueryWhere = struct {
@@ -42,7 +42,7 @@ pub const QueryWhere = struct {
     limit: u32 = 10,
     keywords: []const u8 = "",
     status: ?u16 = null,
-    order: []const u8 = "id ASC",
+    order: []const u8 = "c.id ASC",
 };
 
 pub const ResultCount = struct {

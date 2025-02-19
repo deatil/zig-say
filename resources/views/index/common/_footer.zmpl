@@ -6,7 +6,7 @@
                 <p>
                     Copyright © 2025
                     <a href="https://github.com/deatil/zig-say" target="_blank" style="color:#8C8C8C;">
-                        zig-say
+                        {{context.webname}}
                     </a>
                     All Rights Reserved
             </footer>

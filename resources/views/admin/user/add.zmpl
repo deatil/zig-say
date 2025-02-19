@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>用户编辑</title>
+    <title>添加用户</title>
     <link rel="stylesheet" href="/static/admin/component/pear/css/pear.css" />
 </head>
 <body>
