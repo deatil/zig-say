@@ -14,8 +14,9 @@ pub fn route(router: anytype) void {
     adminRoute(router);
     staticRoute(router);
 
-    // Fallback handler for all unmatched routes (must be last)
-    router.get("/*", error_handler.error_handler.notFound, .{});
+    // Fallback handlers for all unmatched routes (must be last)
+    router.all("/admin/*", error_handler.error_handler.notFound, .{});
+    router.all("/*", error_handler.error_handler.notFound, .{});
 }
 
 pub fn indexRoute(router: anytype) void {
