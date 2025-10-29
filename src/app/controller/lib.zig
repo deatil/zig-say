@@ -6,3 +6,6 @@ pub const admin = @import("./admin/lib.zig");
 
 // static
 pub const static = @import("./static/lib.zig");
+
+// error
+pub const error_handler = @import("./error/lib.zig");

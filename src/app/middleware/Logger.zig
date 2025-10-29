@@ -33,17 +33,18 @@ pub fn init(config: Config) !Logger {
 // Must define an `execute` method. `self` doesn't have to be `const`, but
 // you're responsible for making your middleware thread-safe.
 pub fn execute(self: *const Logger, req: *httpz.Request, res: *httpz.Response, executor: anytype) !void {
-    if (self.debug) {
-        const start = std.time.microTimestamp();
-
-        const now_datetime = try time.now().formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
-        defer res.arena.free(now_datetime);
-
-        defer {
-            const elapsed = std.time.microTimestamp() - start;
-            std.log.info("[{s}]\t{s}\t{s}{s}{s}\t{d}\t{d}us", .{ now_datetime, @tagName(req.method), req.url.path, if (self.query and req.url.query.len > 0) "?" else "", if (self.query) req.url.query else "", res.status, elapsed });
-        }
+    if (!self.debug) {
+        return executor.next();
     }
 
-    return executor.next();
+    const start = std.time.microTimestamp();
+    const now_datetime = try time.now().formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
+    defer res.arena.free(now_datetime);
+
+    // Execute the handler first
+    try executor.next();
+
+    // Then capture the status after handler completes
+    const elapsed = std.time.microTimestamp() - start;
+    std.log.info("[{s}]\t{s}\t{s}{s}{s}\t{d}\t{d}us", .{ now_datetime, @tagName(req.method), req.url.path, if (self.query and req.url.query.len > 0) "?" else "", if (self.query) req.url.query else "", res.status, elapsed });
 }
