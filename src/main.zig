@@ -19,11 +19,9 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    // initDB
     var db = try initDB(allocator);
-    defer db.deinit();
+    defer db.deinit(allocator);
 
-    // mime_map
     var mime_map = mime.MimeMap.init(allocator);
     defer mime_map.deinit();
     try mime_map.build();
@@ -38,31 +36,29 @@ pub fn main() !void {
         .address = config.server.address,
     }, &app);
 
-    var router = server.router(.{});
+    var router = try server.router(.{});
 
-    // middleware
     const logger = try server.middleware(Logger, .{ .query = true, .debug = config.app.debug });
     const admin_auth = try server.middleware(AdminAuth, .{ .debug = config.app.debug });
-    router.middlewares = &.{logger, admin_auth};
+    router.middlewares = &.{ logger, admin_auth };
 
     route(router);
 
-    try server.listen(); 
+    try server.listen();
 }
 
 fn initDB(allocator: std.mem.Allocator) !Conn {
     var client = try Conn.init(
         allocator,
         &.{
-            .username = config.db.username,   
-            .password = config.db.password,  
-            .database = config.db.database,  
-            .address =  config.db.address,  
+            .username = config.db.username,
+            .password = config.db.password,
+            .database = config.db.database,
+            .address = config.db.address,
         },
     );
-    
+
     try client.ping();
 
     return client;
 }
-

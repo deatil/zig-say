@@ -37,14 +37,14 @@ pub fn console(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     var new_topics = try data.array();
 
-    const lists = try topic_model.getList(res.arena, app.db, .{.order = "id DESC"});
+    const lists = try topic_model.getList(res.arena, app.db, .{ .order = "id DESC" });
     const rows_iter = lists.iter();
     while (try rows_iter.next()) |row| {
         {
             var topic: topic_model.TopicUser = undefined;
             try row.scan(&topic);
 
-            try new_topics.append(.{ 
+            try new_topics.append(.{
                 .title = topic.title,
                 .add_time = try time.Time.fromTimestamp(@as(i64, @intCast(topic.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
             });
@@ -55,4 +55,3 @@ pub fn console(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try views.view(res, "admin/index/console", &data);
 }
-

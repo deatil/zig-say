@@ -1,42 +1,24 @@
 .{
-    // This is the default name used by packages depending on this one. For
-    // example, when a user runs `zig fetch --save <url>`, this field is used
-    // as the key in the `dependencies` table. Although the user can choose a
-    // different name, most users will stick with this provided value.
-    //
-    // It is redundant to include "zig" in this name because it is already
-    // within the Zig package namespace.
-    .name = "zig-say",
-
-    // This is a [Semantic Version](https://semver.org/).
-    // In a future version of Zig it will be used for package deduplication.
+    .name = .zigsay,
+    .fingerprint = 0x2a2010f594d1ab96,
     .version = "1.0.0",
-
-    // This field is optional.
-    // This is currently advisory only; Zig does not yet do anything
-    // with this value.
-    //.minimum_zig_version = "0.11.0",
-
-    // This field is optional.
-    // Each dependency must either provide a `url` and `hash`, or a `path`.
-    // `zig build --fetch` can be used to fetch all dependencies of a package, recursively.
-    // Once all dependencies are fetched, `zig build` no longer requires
-    // internet connectivity.
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .myzql = .{
-            .path = "./lib/myzql",
+            .url = "https://github.com/speed2exe/myzql/archive/refs/tags/0.15.1.tar.gz",
+            .hash = "myzql-0.0.0-XU5aAP_0AgCPYPMy61wPn8RgtS_wlJK5kRrU38taGTrY",
         },
         .httpz = .{
-            .url = "git+https://github.com/karlseguin/http.zig?ref=master#a691d731047e9a5a79d71ac594cb8f5fad1d0705",
-            .hash = "122072c92285c8c44055eb45058b834d1e7ecd46a5704d58a207103c39fb5922b8f5",
+            .url = "git+https://github.com/karlseguin/http.zig?ref=master#9c918865554c82648cd5eeff52b373d291625edc",
+            .hash = "httpz-0.0.0-PNVzrBXyBgBR5yTLW6dUTWtXSahqFsLdEwFI3tVy5J72",
         },
         .zmpl = .{
-            .url = "git+https://github.com/jetzig-framework/zmpl?ref=main#b1dfca8eec73520af5b029016c5b5914da659b6d",
-            .hash = "1220e70c218c89de219d4f9506a4ad69bd1b5257cd8c7cdc2ea823830e1d8b9dc4df",
+            .url = "git+https://github.com/dacheng-zig/jetzig-zmpl?ref=dacheng/fix-duplicates#895a384cb45b5a9283b31359964530ff8871de79",
+            .hash = "zmpl-0.0.1-SYFGBh2oAwB7sk3j-dJO2q5zUZh-rpDJVP_JHWLpR83n",
         },
-        .@"zig-time" = .{
-            .url = "git+https://github.com/deatil/zig-time?ref=main#ca7b9bf03b07345158d68fc73f3c8b3f1aeb4da8",
-            .hash = "1220adf7f7cdf6ebdb2db1a5a5871af9a4bd67ea204066c3d1aa6bb2106d742e1791",
+        .zigtime = .{
+            .url = "git+https://github.com/deatil/zig-time?ref=v1.2.0#5c62c666350da909019f91f682471e14ba6fbc3f",
+            .hash = "zig_time-1.2.0-FD_-ClelAQB4hP6Tf3zIp3csi91UlUuO55dak6gbaXh8",
         },
     },
     .paths = .{

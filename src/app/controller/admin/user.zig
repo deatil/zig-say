@@ -4,9 +4,7 @@ const zig_time = @import("zig-time");
 
 const lib = @import("say-lib");
 const App = lib.global.App;
-const config = lib.global.config;
 const views = lib.views;
-const auth = lib.utils.auth;
 const http = lib.utils.http;
 
 const model = @import("./../../model/lib.zig");
@@ -48,7 +46,7 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .status = new_status,
     };
 
-    var user_list = std.ArrayList(user_model.User).init(res.arena);
+    var user_list = std.array_list.Managed(user_model.User).init(res.arena);
     defer user_list.deinit();
 
     const lists = try user_model.getList(res.arena, app.db, where);
@@ -74,7 +72,6 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             .count = count,
         },
     }, .{});
-
 }
 
 pub fn add(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -173,7 +170,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         }, .{});
         return;
     }
-    
+
     if (req.body() == null) {
         try res.json(.{
             .code = 1,

@@ -16,7 +16,7 @@ pub fn fromExtension(extension: []const u8) ?MimeType {
     for (mime_types) |mime_type| {
         if (std.mem.eql(u8, extension, mime_type.file_type)) return .{ .name = mime_type.name };
     }
-    
+
     return null;
 }
 

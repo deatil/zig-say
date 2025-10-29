@@ -6,4 +6,3 @@ pub const admin = @import("./admin/lib.zig");
 
 // static
 pub const static = @import("./static/lib.zig");
-

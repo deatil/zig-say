@@ -12,5 +12,3 @@ pub const App = struct {
     db: *Conn,
     mime_map: *mime.MimeMap,
 };
-
-

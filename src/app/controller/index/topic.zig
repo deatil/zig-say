@@ -58,11 +58,11 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             var comment: comment_model.CommentUser = undefined;
             try row.scan(&comment);
 
-            try comments.append(.{ 
+            try comments.append(.{
                 .content = comment.content,
                 .username = comment.username orelse "[empty]",
                 .add_time = try zig_time.Time.fromTimestamp(@as(i64, @intCast(comment.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
-           });
+            });
         }
     }
 
@@ -244,4 +244,3 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .msg = "回复话题成功",
     }, .{});
 }
-

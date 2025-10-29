@@ -1,12 +1,9 @@
 const std = @import("std");
 const httpz = @import("httpz");
-const zig_time = @import("zig-time");
 
 const lib = @import("say-lib");
 const App = lib.global.App;
-const config = lib.global.config;
 const views = lib.views;
-const auth = lib.utils.auth;
 const http = lib.utils.http;
 
 const model = @import("./../../model/lib.zig");
@@ -48,7 +45,7 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .status = new_status,
     };
 
-    var topic_list = std.ArrayList(topic_model.TopicUser).init(res.arena);
+    var topic_list = std.array_list.Managed(topic_model.TopicUser).init(res.arena);
     defer topic_list.deinit();
 
     const lists = try topic_model.getList(res.arena, app.db, where);
@@ -74,7 +71,6 @@ pub fn list(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             .count = count,
         },
     }, .{});
-
 }
 
 pub fn edit(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -120,7 +116,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         }, .{});
         return;
     }
-    
+
     if (req.body() == null) {
         try res.json(.{
             .code = 1,

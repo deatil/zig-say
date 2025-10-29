@@ -7,7 +7,6 @@ pub fn now() zig_time.Time {
     return zig_time.now().setLoc(config.app.loc);
 }
 
-pub fn parse(comptime layout: []const u8, value: []const u8) !zig_time.Time { 
+pub fn parse(comptime layout: []const u8, value: []const u8) !zig_time.Time {
     return try zig_time.parse(layout, value);
 }
-

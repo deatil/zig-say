@@ -75,4 +75,3 @@ pub fn logout(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     res.status = 303;
     res.header("Location", "/auth/login");
 }
-
