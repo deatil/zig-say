@@ -108,7 +108,7 @@
 					},
 					"menu": {
 						"data": menus,
-						"collaspe": true,
+						"collaspe": false,
 						"accordion": true,
 						"method": "GET",
 						"control": false,
