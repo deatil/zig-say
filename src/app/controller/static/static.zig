@@ -44,14 +44,14 @@ fn matchPublicContent(alloc: Allocator, app: *App, request: *httpz.Request) !?St
         };
 
     var open_file = std.fs.cwd().openFile(absolute_path, .{ .mode = .read_only }) catch {
-       return null;
+        return null;
     };
     defer open_file.close();
 
     const extension = std.fs.path.extension(public_file_path);
     const mime_type = if (app.mime_map.get(extension)) |mime| mime else "application/octet-stream";
 
-    const file_length = (try open_file.metadata()).size();
+    const file_length = (try open_file.stat()).size;
     const content = try open_file.readToEndAlloc(alloc, file_length);
 
     return .{
@@ -59,4 +59,3 @@ fn matchPublicContent(alloc: Allocator, app: *App, request: *httpz.Request) !?St
         .mime_type = mime_type,
     };
 }
-

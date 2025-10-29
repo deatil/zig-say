@@ -28,8 +28,6 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     }
 
     var data = views.datas(res.arena);
-    defer data.deinit();
-
     try views.view(res, "admin/auth/login", &data);
 }
 
@@ -44,7 +42,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             .msg = "你已经登录了",
         }, .{});
     }
-    
+
     if (req.body() == null) {
         try res.json(.{
             .code = 1,

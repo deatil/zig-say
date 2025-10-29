@@ -12,7 +12,7 @@ debug: bool,
 
 // Must defined a pub config structure, even if it's empty
 pub const Config = struct {
-   debug: bool = false,
+    debug: bool = false,
 };
 
 // Must define an `init` method, which will accept your Config
@@ -36,7 +36,6 @@ pub fn execute(self: *const AdminAuth, req: *httpz.Request, res: *httpz.Response
         const path = req.url.path;
         if (std.mem.startsWith(u8, path, "/admin/")) {
             if (!std.mem.startsWith(u8, path, "/admin/auth/")) {
-                
                 var cookies = req.cookies();
                 const login_data = cookies.get("admin_login") orelse "";
                 if (login_data.len == 0) {

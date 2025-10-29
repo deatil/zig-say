@@ -5,8 +5,6 @@ const JsonMimeType = struct {
     fileTypes: [][]const u8,
 };
 
-/// Invoked at build time to parse mimeData.json into an array of `MimeType` which can then be
-/// written out as a Zig struct and imported at runtime.
 pub fn generateMimeModule(build: *std.Build) !*std.Build.Module {
     const file = try std.fs.openFileAbsolute(build.pathFromRoot("./resources/mime/mimeData.json"), .{});
     const stat = try file.stat();
@@ -20,7 +18,7 @@ pub fn generateMimeModule(build: *std.Build) !*std.Build.Module {
         .{ .ignore_unknown_fields = true },
     );
 
-    var buf = std.ArrayList(u8).init(build.allocator);
+    var buf = std.array_list.Managed(u8).init(build.allocator);
     defer buf.deinit();
 
     const writer = buf.writer();

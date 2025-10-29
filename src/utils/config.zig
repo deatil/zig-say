@@ -26,9 +26,7 @@ pub const DB = struct {
     password: []const u8 = "",
     database: [:0]const u8 = "",
     collation: u8 = constants.utf8mb4_general_ci,
-
-    // cfgs from Golang driver
-    client_found_rows: bool = false, // Return number of matching rows instead of rows changed
+    client_found_rows: bool = false,
     ssl: bool = false,
     multi_statements: bool = false,
 };
@@ -39,7 +37,7 @@ pub const config = struct {
         .public_path = "resources/static",
         .loc = zig_time.CTT,
     };
-    
+
     pub const auth = Auth{
         .key = "qwedrftgfrt5rtfgtr4rtgfrt56yjws1",
         .iv = "tyhgfvbnhjuiklw3",

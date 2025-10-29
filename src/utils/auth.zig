@@ -10,15 +10,12 @@ const assert = std.debug.assert;
 const zig_cbc = @import("./cbc.zig");
 
 pub const Case = enum { lower, upper };
-
-/// Encodes a sequence of bytes as hexadecimal digits.
-/// Returns an array containing the encoded bytes.
 pub fn bytesToHex(alloc: Allocator, input: anytype, case: Case) ![]u8 {
     if (input.len == 0) return "";
-    comptime assert(@TypeOf(input[0]) == u8); // elements to encode must be unsigned bytes
+    comptime assert(@TypeOf(input[0]) == u8);
 
     const charset = "0123456789" ++ if (case == .upper) "ABCDEF" else "abcdef";
-    
+
     var result = try alloc.alloc(u8, input.len * 2);
     for (input, 0..) |b, i| {
         result[i * 2 + 0] = charset[b >> 4];
@@ -28,11 +25,7 @@ pub fn bytesToHex(alloc: Allocator, input: anytype, case: Case) ![]u8 {
     return result[0..];
 }
 
-/// Decodes the sequence of bytes represented by the specified string of
-/// hexadecimal characters.
-/// Returns a slice of the output buffer containing the decoded bytes.
 pub fn hexToBytes(out: []u8, input: []const u8) ![]u8 {
-    // Expect 0 or n pairs of hexadecimal digits.
     if (input.len & 1 != 0)
         return error.InvalidLength;
     if (out.len * 2 < input.len)
@@ -50,15 +43,14 @@ pub fn hexToBytes(out: []u8, input: []const u8) ![]u8 {
 
 pub fn passwordHash(alloc: Allocator, pwword: []const u8) ![]const u8 {
     const hash_options = bcrypt.HashOptions{
-        .params = .{ .rounds_log = 5 },
+        .params = .{ .rounds_log = 5, .silently_truncate_password = false },
         .encoding = .phc,
-        .silently_truncate_password = false,
     };
 
     var res: [bcrypt.hash_length * 2]u8 = undefined;
     const s = try bcrypt.strHash(pwword, hash_options, &res);
 
-    var buf = std.ArrayList(u8).init(alloc);
+    var buf = std.array_list.Managed(u8).init(alloc);
     defer buf.deinit();
 
     try buf.appendSlice(s[0..]);
@@ -67,7 +59,7 @@ pub fn passwordHash(alloc: Allocator, pwword: []const u8) ![]const u8 {
 }
 
 pub fn checkPasswordHash(pwword: []const u8, hash: []const u8) bool {
-    const verify_options = bcrypt.VerifyOptions{};
+    const verify_options = bcrypt.VerifyOptions{ .silently_truncate_password = false };
 
     bcrypt.strVerify(hash, pwword, verify_options) catch {
         return false;
@@ -83,7 +75,7 @@ pub fn encrypt(alloc: Allocator, src: []const u8, key: []const u8, iv: []const u
     if (iv.len < 16) {
         return error.IVTooShort;
     }
-    
+
     var new_key: [32]u8 = undefined;
     @memcpy(new_key[0..], key[0..32]);
 
@@ -115,7 +107,9 @@ pub fn decrypt(alloc: Allocator, src: []const u8, key: []const u8, iv: []const u
     @memcpy(new_iv[0..], iv[0..16]);
 
     const decoded = try alloc.alloc(u8, src.len);
-    const decoded_src = hexToBytes(decoded, src) catch { return ""; };
+    const decoded_src = hexToBytes(decoded, src) catch {
+        return "";
+    };
 
     const M = zig_cbc.CBC(aes.Aes256);
     const enc = M.init(new_key);
@@ -142,9 +136,9 @@ test "passwordHash" {
 test "encrypt" {
     const alloc = std.heap.page_allocator;
 
-    const key = [_]u8{ 
-        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c, 
-        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c, 
+    const key = [_]u8{
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
     };
     const iv = [_]u8{
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,

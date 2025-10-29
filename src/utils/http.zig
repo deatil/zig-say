@@ -25,7 +25,7 @@ pub fn parseFormData(allocator: Allocator, b: []const u8) !HashMap {
 }
 
 pub fn formatBuf(allocator: Allocator, b: []const u8) ![]const u8 {
-    var buf = std.ArrayList(u8).init(allocator);
+    var buf = std.array_list.Managed(u8).init(allocator);
     defer buf.deinit();
 
     try buf.appendSlice(b[0..]);
@@ -36,24 +36,21 @@ pub fn formatBuf(allocator: Allocator, b: []const u8) ![]const u8 {
 pub fn setCookie(res: *httpz.Response, key: []const u8, value: []const u8) !void {
     try res.setCookie(key, value, .{
         .path = "/",
-        // .domain = "*",
         .max_age = 1_000_000,
         .secure = true,
         .http_only = true,
         .partitioned = true,
-        .same_site = .lax,  // or .none, or .strict (or null to leave out)
+        .same_site = .lax,
     });
 }
 
 pub fn delCookie(res: *httpz.Response, key: []const u8) !void {
     try res.setCookie(key, "", .{
         .path = "/",
-        // .domain = "*",
         .max_age = 0,
         .secure = true,
         .http_only = true,
         .partitioned = true,
-        .same_site = .lax,  // or .none, or .strict (or null to leave out)
+        .same_site = .lax,
     });
 }
-

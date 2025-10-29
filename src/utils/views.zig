@@ -4,31 +4,20 @@ const httpz = @import("httpz");
 const Allocator = std.mem.Allocator;
 
 pub fn datas(allocator: Allocator) zmpl.Data {
-    const data = zmpl.Data.init(allocator);
-    // defer data.deinit();
-
-    return data;
+    return zmpl.Data.init(allocator);
 }
 
 pub fn view(resp: *httpz.Response, tpl: []const u8, data: *zmpl.Data) !void {
     const Context = struct { webname: []const u8 = "zig-say" };
-    const context = Context { .webname = "Zig-say" };
+    const context = Context{ .webname = "Zig-say" };
 
     try data.addConst("say_view", data.string("test"));
-    defer data.deinit();
 
     if (zmpl.find(tpl)) |template| {
-        const output = try template.render(data, Context, context, .{});
-        defer resp.arena.free(output);
-
-        var buf = std.ArrayList(u8).init(resp.arena);
-        defer buf.deinit();
-
-        try buf.appendSlice(output);
-
+        const output = try template.render(data, Context, context, &.{}, .{});
         resp.status = 200;
         resp.header("content-type", "text/html");
-        resp.body = try buf.toOwnedSlice();
+        resp.body = output;
     } else {
         resp.status = 200;
         resp.header("content-type", "text/html");
@@ -36,7 +25,7 @@ pub fn view(resp: *httpz.Response, tpl: []const u8, data: *zmpl.Data) !void {
     }
 }
 
-pub fn errorAdminView(res: *httpz.Response, msg: []const u8, url: []const u8) !void  {
+pub fn errorAdminView(res: *httpz.Response, msg: []const u8, url: []const u8) !void {
     var data = datas(res.arena);
 
     var body = try data.object();
@@ -46,7 +35,7 @@ pub fn errorAdminView(res: *httpz.Response, msg: []const u8, url: []const u8) !v
     try view(res, "admin/error/index", &data);
 }
 
-pub fn errorView(res: *httpz.Response, msg: []const u8, url: []const u8) !void  {
+pub fn errorView(res: *httpz.Response, msg: []const u8, url: []const u8) !void {
     var data = datas(res.arena);
 
     var body = try data.object();

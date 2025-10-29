@@ -66,7 +66,7 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
         }, .{});
         return;
     };
-    
+
     if (!auth.checkPasswordHash(oldpassword, admin_info.password)) {
         try res.json(.{
             .code = 1,
@@ -91,4 +91,3 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
         .msg = "更改密码成功",
     }, .{});
 }
-

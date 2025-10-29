@@ -3,14 +3,8 @@ const Allocator = std.mem.Allocator;
 
 const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
-const DateTime = myzql.temporal.DateTime;
-const Duration = myzql.temporal.Duration;
 const OkPacket = myzql.protocol.generic_response.OkPacket;
 const ResultSet = myzql.result.ResultSet;
-const TextResultRow = myzql.result.TextResultRow;
-const ResultRowIter = myzql.result.ResultRowIter;
-const TextElemIter = myzql.result.TextElemIter;
-const TextElems = myzql.result.TextElems;
 const PreparedStatement = myzql.result.PreparedStatement;
 const BinaryResultRow = myzql.result.BinaryResultRow;
 
@@ -32,7 +26,7 @@ pub fn getInfoByUsername(alloc: Allocator, conn: *Conn, username: []const u8) !A
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(&prep_stmt, .{username}); 
+    const query_res = try conn.executeRows(alloc, &prep_stmt, .{username});
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
     const first_info = try rows.first();
@@ -57,7 +51,7 @@ pub fn getInfoById(alloc: Allocator, conn: *Conn, id: u32) !Admin {
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(&prep_stmt, .{id}); 
+    const query_res = try conn.executeRows(alloc, &prep_stmt, .{id});
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
     const first_info = try rows.first();
@@ -84,7 +78,7 @@ pub fn updatePassword(alloc: Allocator, conn: *Conn, id: u32, password: []const 
 
     const exe_res = try conn.execute(&prep_stmt, .{ password, id });
 
-    const ok: OkPacket = try exe_res.expect(.ok); 
+    const ok: OkPacket = try exe_res.expect(.ok);
     const affected_rows: u64 = ok.affected_rows;
     if (affected_rows == 0) {
         return false;

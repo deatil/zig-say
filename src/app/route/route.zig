@@ -16,7 +16,7 @@ pub fn route(router: anytype) void {
 
 pub fn indexRoute(router: anytype) void {
     router.get("/", index.index.index, .{});
-    
+
     router.get("/auth/login", index.auth.login, .{});
     router.post("/auth/login", index.auth.loginSave, .{});
     router.get("/auth/logout", index.auth.logout, .{});
@@ -25,7 +25,6 @@ pub fn indexRoute(router: anytype) void {
     router.get("/topic/create", index.topic.create, .{});
     router.post("/topic/create", index.topic.createSave, .{});
     router.post("/topic/comment/add", index.topic.addComment, .{});
-
 }
 
 pub fn adminRoute(router: anytype) void {
@@ -71,4 +70,3 @@ pub fn adminRoute(router: anytype) void {
 pub fn staticRoute(router: anytype) void {
     router.get("/static/*", static.static.index, .{});
 }
-

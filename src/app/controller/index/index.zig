@@ -33,13 +33,13 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             var topic: topic_model.TopicUser = undefined;
             try row.scan(&topic);
 
-            try topics.append(.{ 
+            try topics.append(.{
                 .id = topic.id,
                 .title = topic.title,
                 .username = topic.username orelse "[empty]",
                 .views = topic.views,
                 .add_time = try time.Time.fromTimestamp(@as(i64, @intCast(topic.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
-           });
+            });
         }
     }
 
@@ -47,7 +47,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     const topic_count = try topic_model.getCount(res.arena, app.db, .{
         .status = 1,
-        .order = "id DESC", 
+        .order = "id DESC",
     });
 
     try body.put("page", data.integer(new_page));
@@ -68,5 +68,3 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     try views.view(res, "index/index/index", &data);
 }
-
-
