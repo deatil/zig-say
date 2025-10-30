@@ -6,12 +6,17 @@ const controller = @import("./../controller/lib.zig");
 const index = controller.index;
 const admin = controller.admin;
 const static = controller.static;
+const error_handler = controller.error_handler;
 
 pub fn route(router: anytype) void {
     indexRoute(router);
 
     adminRoute(router);
     staticRoute(router);
+
+    // Fallback handlers for all unmatched routes (must be last)
+    router.all("/admin/*", error_handler.error_handler.notFound, .{});
+    router.all("/*", error_handler.error_handler.notFound, .{});
 }
 
 pub fn indexRoute(router: anytype) void {
