@@ -32,6 +32,7 @@ pub fn adminRoute(router: anytype) void {
     router.post("/admin/auth/login", admin.auth.loginSave, .{});
     router.get("/admin/auth/logout", admin.auth.logout, .{});
 
+    router.get("/admin", admin.index.index, .{});
     router.get("/admin/index", admin.index.index, .{});
     router.get("/admin/console", admin.index.console, .{});
 
