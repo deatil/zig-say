@@ -13,7 +13,7 @@
             .hash = "httpz-0.0.0-PNVzrBXyBgBR5yTLW6dUTWtXSahqFsLdEwFI3tVy5J72",
         },
         .zmpl = .{
-            .url = "git+https://github.com/dacheng-zig/jetzig-zmpl?ref=dacheng/fix-duplicates#895a384cb45b5a9283b31359964530ff8871de79",
+            .url = "git+https://github.com/jetzig-framework/zmpl#f75520e0dabf7bb397c96841aa2d10e69e46c4e8",
             .hash = "zmpl-0.0.1-SYFGBh2oAwB7sk3j-dJO2q5zUZh-rpDJVP_JHWLpR83n",
         },
         .zigtime = .{
