@@ -90,7 +90,7 @@
 
 		<!-- 框 架 初 始 化 -->
 
-        @partial admin/index/menus
+		{% include 'admin/index/menus' %}
 
 		<script>
 			layui.use(['admin','jquery','convert','popup'], function() {
@@ -99,7 +99,7 @@
 				var convert = layui.convert;
 				var popup = layui.popup;
 		
-				admin.setAvatar("/static/admin/admin/images/avatar.jpg", "{{ $.admin_login }}");
+				admin.setAvatar("/static/admin/admin/images/avatar.jpg", "{{ data.admin_login }}");
 				
 				admin.render({
 					"logo": {

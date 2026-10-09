@@ -1,4 +1,5 @@
 const std = @import("std");
+const Io = std.Io;
 const Allocator = std.mem.Allocator;
 
 const myzql = @import("myzql");
@@ -43,7 +44,7 @@ pub const ResultCount = struct {
     n: u64 = 0,
 };
 
-pub fn getList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(BinaryResultRow) {
+pub fn getList(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !ResultSet(BinaryResultRow) {
     if (where.status) |status| {
         const query =
             \\SELECT c.*, u.username, u.sign as user_sign
@@ -57,11 +58,11 @@ pub fn getList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(Bina
         const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
         const params = .{ new_keywords, where.keywords, status, where.order, where.offset, where.limit };
 
-        const prep_res = try conn.prepare(alloc, query);
+        const prep_res = try conn.prepare(alloc, io, query);
         defer prep_res.deinit(alloc);
         const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-        const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+        const query_res = try conn.executeRows(io, &prep_stmt, params);
         const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
         return rows;
@@ -79,17 +80,17 @@ pub fn getList(alloc: Allocator, conn: *Conn, where: QueryWhere) !ResultSet(Bina
     const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
     const params = .{ new_keywords, where.keywords, where.order, where.offset, where.limit };
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+    const query_res = try conn.executeRows(io, &prep_stmt, params);
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
     return rows;
 }
 
-pub fn getCount(alloc: Allocator, conn: *Conn, where: QueryWhere) !u64 {
+pub fn getCount(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !u64 {
     if (where.status) |status| {
         const query =
             \\SELECT count(id) as n
@@ -101,14 +102,14 @@ pub fn getCount(alloc: Allocator, conn: *Conn, where: QueryWhere) !u64 {
         const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
         const params = .{ new_keywords, where.keywords, status };
 
-        const prep_res = try conn.prepare(alloc, query);
+        const prep_res = try conn.prepare(alloc, io, query);
         defer prep_res.deinit(alloc);
         const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-        const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+        const query_res = try conn.executeRows(io, &prep_stmt, params);
         const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
-        const first_info = try rows.first();
+        const first_info = try rows.first(io);
         if (first_info) |val| {
             var resultCount: ResultCount = undefined;
             try val.scan(&resultCount);
@@ -129,14 +130,14 @@ pub fn getCount(alloc: Allocator, conn: *Conn, where: QueryWhere) !u64 {
     const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
     const params = .{ new_keywords, where.keywords };
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+    const query_res = try conn.executeRows(io, &prep_stmt, params);
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
-    const first_info = try rows.first();
+    const first_info = try rows.first(io);
     if (first_info) |val| {
         var resultCount: ResultCount = undefined;
         try val.scan(&resultCount);
@@ -147,7 +148,7 @@ pub fn getCount(alloc: Allocator, conn: *Conn, where: QueryWhere) !u64 {
     return 0;
 }
 
-pub fn getInfoById(alloc: Allocator, conn: *Conn, id: u32) !CommentUser {
+pub fn getInfoById(alloc: Allocator, io: Io, conn: *Conn, id: u32) !CommentUser {
     const query =
         \\SELECT c.*, u.username, u.sign as user_sign
         \\FROM say_comment c
@@ -155,14 +156,14 @@ pub fn getInfoById(alloc: Allocator, conn: *Conn, id: u32) !CommentUser {
         \\WHERE c.id = ?
         \\LIMIT 1
     ;
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(alloc, &prep_stmt, .{id});
+    const query_res = try conn.executeRows(io, &prep_stmt, .{id});
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
-    const first_info = try rows.first();
+    const first_info = try rows.first(io);
     if (first_info) |val| {
         var comment: CommentUser = undefined;
         try val.scan(&comment);
@@ -173,18 +174,18 @@ pub fn getInfoById(alloc: Allocator, conn: *Conn, id: u32) !CommentUser {
     return .{};
 }
 
-pub fn updateInfoById(alloc: Allocator, conn: *Conn, id: u32, comment: Comment) !bool {
+pub fn updateInfoById(alloc: Allocator, io: Io, conn: *Conn, id: u32, comment: Comment) !bool {
     const query =
         \\UPDATE say_comment
         \\SET user_id = ?, topic_id = ?, content = ?, status = ?, add_time = ?, add_ip = ?
         \\WHERE id = ?
     ;
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const exe_res = try conn.execute(&prep_stmt, .{
+    const exe_res = try conn.execute(io, &prep_stmt, .{
         comment.user_id,
         comment.topic_id,
         comment.content,
@@ -204,14 +205,14 @@ pub fn updateInfoById(alloc: Allocator, conn: *Conn, id: u32, comment: Comment) 
     return true;
 }
 
-pub fn addInfo(alloc: Allocator, conn: *Conn, comment: Comment) !bool {
+pub fn addInfo(alloc: Allocator, io: Io, conn: *Conn, comment: Comment) !bool {
     const query =
         \\INSERT INTO say_comment
         \\(user_id, topic_id, content, status, add_time, add_ip)
         \\VALUES (?, ?, ?, ?, ?, ?)
     ;
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
     const params = .{
@@ -223,7 +224,7 @@ pub fn addInfo(alloc: Allocator, conn: *Conn, comment: Comment) !bool {
         comment.add_ip,
     };
 
-    const exe_res = try conn.execute(&prep_stmt, params);
+    const exe_res = try conn.execute(io, &prep_stmt, params);
     const ok: OkPacket = try exe_res.expect(.ok);
     const affected_rows: u64 = ok.affected_rows;
 
@@ -234,18 +235,18 @@ pub fn addInfo(alloc: Allocator, conn: *Conn, comment: Comment) !bool {
     return false;
 }
 
-pub fn deleteInfo(alloc: Allocator, conn: *Conn, id: u32) !bool {
+pub fn deleteInfo(alloc: Allocator, io: Io, conn: *Conn, id: u32) !bool {
     const query =
         \\DELETE FROM say_comment
         \\WHERE id = ?
     ;
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
     const param = .{id};
-    const exe_res = try conn.execute(&prep_stmt, param);
+    const exe_res = try conn.execute(io, &prep_stmt, param);
 
     const ok: OkPacket = try exe_res.expect(.ok);
     const affected_rows: u64 = ok.affected_rows;
@@ -256,7 +257,7 @@ pub fn deleteInfo(alloc: Allocator, conn: *Conn, id: u32) !bool {
     return false;
 }
 
-pub fn getListByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32, where: QueryWhere) !ResultSet(BinaryResultRow) {
+pub fn getListByTopicId(alloc: Allocator, io: Io, conn: *Conn, topic_id: u32, where: QueryWhere) !ResultSet(BinaryResultRow) {
     const query =
         \\SELECT c.*, u.username, u.sign as user_sign
         \\FROM say_comment c
@@ -268,17 +269,17 @@ pub fn getListByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32, where: Que
 
     const params = .{ topic_id, where.order, where.offset, where.limit };
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+    const query_res = try conn.executeRows(io, &prep_stmt, params);
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
     return rows;
 }
 
-pub fn getCountByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32) !u64 {
+pub fn getCountByTopicId(alloc: Allocator, io: Io, conn: *Conn, topic_id: u32) !u64 {
     const query =
         \\SELECT count(id) as n
         \\FROM say_comment
@@ -288,14 +289,14 @@ pub fn getCountByTopicId(alloc: Allocator, conn: *Conn, topic_id: u32) !u64 {
 
     const params = .{topic_id};
 
-    const prep_res = try conn.prepare(alloc, query);
+    const prep_res = try conn.prepare(alloc, io, query);
     defer prep_res.deinit(alloc);
     const prep_stmt: PreparedStatement = try prep_res.expect(.stmt);
 
-    const query_res = try conn.executeRows(alloc, &prep_stmt, params);
+    const query_res = try conn.executeRows(io, &prep_stmt, params);
     const rows: ResultSet(BinaryResultRow) = try query_res.expect(.rows);
 
-    const first_info = try rows.first();
+    const first_info = try rows.first(io);
     if (first_info) |val| {
         var resultCount: ResultCount = undefined;
         try val.scan(&resultCount);

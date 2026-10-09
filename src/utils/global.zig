@@ -1,14 +1,21 @@
 const std = @import("std");
+const Io = std.Io;
+
+const vin = @import("zig-vin");
+
 const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
 
-pub const mime = @import("./mime.zig");
+const lib = @import("say-pkg");
 
-pub const conf = @import("./config.zig");
-pub const DB = conf.DB;
-pub const config = conf.config;
+pub const config = lib.config;
+pub const DB = config.DB;
+
+pub const mime = @import("mime.zig");
 
 pub const App = struct {
+    io: Io,
     db: *Conn,
     mime_map: *mime.MimeMap,
+    view: *vin.Environment
 };

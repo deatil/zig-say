@@ -1,25 +1,22 @@
 const std = @import("std");
-const random = std.crypto.random;
 
 const httpz = @import("httpz");
 const zig_time = @import("zig-time");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
 const auth = lib.utils.auth;
 const http = lib.utils.http;
 
-const model = @import("./../../model/lib.zig");
-const user_model = model.user;
+const user_model = lib.app.model.user;
 
 pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    _ = app;
     _ = req;
 
-    var data = views.datas(res.arena);
+    const data = try views.datas(res.arena, .{});
 
-    try views.view(res, "index/auth/login", &data);
+    try views.view(app, res, "index/auth/login", data);
 }
 
 pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -34,20 +31,20 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     }
 
     var s: []u8 = try res.arena.alloc(u8, 12);
-    random.bytes(s[0..]);
+    app.io.random(s[0..]);
 
     defer res.arena.free(s);
 
     const str_encoded = try auth.bytesToHex(res.arena, s, .lower);
 
-    const add_time = zig_time.now().unix();
+    const add_time = zig_time.now(app.io).unix();
 
-    const ok: bool = user_model.addInfo(res.arena, app.db, .{
+    const ok: bool = user_model.addInfo(res.arena, app.io, app.db, .{
         .username = str_encoded,
         .cookie = str_encoded,
         .sign = "",
         .status = 1,
-        .add_time = @as(u32, @intCast(add_time)),
+        .add_time = @intCast(add_time),
         .add_ip = "",
     }) catch false;
     if (!ok) {

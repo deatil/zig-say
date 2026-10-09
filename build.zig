@@ -1,4 +1,5 @@
 const std = @import("std");
+const Io = std.Io;
 
 const mimeTypes = @import("src/mimeTypes.zig");
 
@@ -11,6 +12,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    lib_mod.addImport("say-pkg", lib_mod);
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -18,7 +20,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    exe_mod.addImport("say-lib", lib_mod);
+    exe_mod.addImport("say-pkg", lib_mod);
 
     const lib = b.addLibrary(.{
         .name = "zig-say",
@@ -30,27 +32,19 @@ pub fn build(b: *std.Build) !void {
         .name = "zig-say",
         .root_module = exe_mod,
     });
-    const templates_paths = try templatesPaths(
-        b.allocator,
-        &.{
-            .{ .prefix = "views", .path = &.{ "resources", "views" } },
-        },
-    );
-    const zmpl = b.dependency(
-        "zmpl",
-        .{
-            .target = target,
-            .optimize = optimize,
-            .zmpl_templates_paths = templates_paths,
-            .zmpl_auto_build = false,
-            .zmpl_markdown_fragments = try generateMarkdownFragments(b),
-            .zmpl_constants = try addTemplateConstants(b, struct {
-                say_view: []const u8,
-            }),
-        },
-    );
-    exe.root_module.addImport("zmpl", zmpl.module("zmpl"));
-    lib_mod.addImport("zmpl", zmpl.module("zmpl"));
+
+    const io = b.graph.io;
+    const path = &.{ "resources", "views" };
+    const tmp_path = try templatesPaths(b.allocator, io, path);
+
+    const opts = b.addOptions();
+    opts.addOption([]const u8, "tmp_path", tmp_path);
+    exe.root_module.addImport("say-opts", opts.createModule());
+    lib_mod.addImport("say-opts", opts.createModule());
+
+    const zig_vin_dep = b.dependency("zig-vin", .{});
+    exe.root_module.addImport("zig-vin", zig_vin_dep.module("zig-vin"));
+    lib_mod.addImport("zig-vin", zig_vin_dep.module("zig-vin"));
 
     const httpz = b.dependency("httpz", .{
         .target = target,
@@ -76,10 +70,6 @@ pub fn build(b: *std.Build) !void {
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
 
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
@@ -100,90 +90,19 @@ pub fn build(b: *std.Build) !void {
     test_step.dependOn(&run_exe_unit_tests.step);
 }
 
-fn generateMarkdownFragments(b: *std.Build) ![]const u8 {
-    const file = std.fs.cwd().openFile(b.pathJoin(&.{ "src", "main.zig" }), .{}) catch |err| {
-        switch (err) {
-            error.FileNotFound => return "",
-            else => return err,
-        }
-    };
-    const stat = try file.stat();
-    const source = try file.readToEndAllocOptions(b.allocator, @intCast(stat.size), null, .@"1", 0);
-    if (try getMarkdownFragmentsSource(b.allocator, source)) |markdown_fragments_source| {
-        return try std.fmt.allocPrint(b.allocator,
-            \\const std = @import("std");
-            \\const zmd = @import("zmd");
-            \\
-            \\{s};
-            \\
-        , .{markdown_fragments_source});
-    } else {
-        return "";
-    }
+fn templatesPaths(allocator: std.mem.Allocator, io: Io, paths: []const []const u8) ![]const u8 {
+    const joined = try std.fs.path.join(allocator, paths);
+    defer allocator.free(joined);
+
+    const absolute_path = if (std.fs.path.isAbsolute(joined))
+        try allocator.dupe(u8, joined)
+    else
+        std.Io.Dir.cwd().realPathFileAlloc(io, joined, allocator) catch |err|
+            switch (err) {
+                error.FileNotFound => "_",
+                else => return err,
+            };
+
+    return absolute_path;
 }
 
-fn getMarkdownFragmentsSource(allocator: std.mem.Allocator, source: [:0]const u8) !?[]const u8 {
-    var ast = try std.zig.Ast.parse(allocator, source, .zig);
-    defer ast.deinit(allocator);
-
-    for (ast.nodes.items(.tag), 0..) |tag, index| {
-        switch (tag) {
-            .simple_var_decl => {
-                const node_index: std.zig.Ast.Node.Index = @enumFromInt(index);
-                const decl = ast.simpleVarDecl(node_index);
-                const identifier = ast.tokenSlice(decl.ast.mut_token + 1);
-                if (std.mem.eql(u8, identifier, "markdown_fragments")) {
-                    return ast.getNodeSource(node_index);
-                }
-            },
-            else => continue,
-        }
-    }
-
-    return null;
-}
-
-const TemplatesPath = struct {
-    prefix: []const u8,
-    path: []const []const u8,
-};
-
-fn templatesPaths(allocator: std.mem.Allocator, paths: []const TemplatesPath) ![]const []const u8 {
-    var buf = std.array_list.Managed([]const u8).init(allocator);
-    for (paths) |path| {
-        const joined = try std.fs.path.join(allocator, path.path);
-        defer allocator.free(joined);
-
-        const absolute_path = if (std.fs.path.isAbsolute(joined))
-            try allocator.dupe(u8, joined)
-        else
-            std.fs.cwd().realpathAlloc(allocator, joined) catch |err|
-                switch (err) {
-                    error.FileNotFound => "_",
-                    else => return err,
-                };
-
-        try buf.append(
-            try std.mem.concat(allocator, u8, &.{ "prefix=", path.prefix, ",path=", absolute_path }),
-        );
-    }
-
-    return buf.toOwnedSlice();
-}
-
-fn addTemplateConstants(b: *std.Build, comptime constants: type) ![]const u8 {
-    const fields = switch (@typeInfo(constants)) {
-        .@"struct" => |info| info.fields,
-        else => @panic("Expected struct, found: " ++ @typeName(constants)),
-    };
-    var array: [fields.len][]const u8 = undefined;
-
-    inline for (fields, 0..) |field, index| {
-        array[index] = std.fmt.comptimePrint(
-            "{s}#{s}",
-            .{ field.name, @typeName(field.type) },
-        );
-    }
-
-    return std.mem.join(b.allocator, "|", &array);
-}

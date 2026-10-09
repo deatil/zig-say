@@ -1,7 +1,7 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 
 pub fn notFound(app: *App, req: *httpz.Request, res: *httpz.Response) !void {

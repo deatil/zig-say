@@ -1,19 +1,16 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 const config = lib.global.config;
 const views = lib.views;
 const auth = lib.utils.auth;
 const http = lib.utils.http;
 
-const model = @import("./../../model/lib.zig");
-const admin_model = model.admin;
+const admin_model = lib.app.model.admin;
 
 pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    _ = app;
-
     var cookies = req.cookies();
     const login_data = cookies.get("admin_login") orelse "";
     if (login_data.len > 0) {
@@ -27,8 +24,8 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         }
     }
 
-    var data = views.datas(res.arena);
-    try views.view(res, "admin/auth/login", &data);
+    const data = try views.datas(res.arena, .{});
+    try views.view(app, res, "admin/auth/login", data);
 }
 
 pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -64,7 +61,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    const admin_info = admin_model.getInfoByUsername(res.arena, app.db, username) catch {
+    const admin_info = admin_model.getInfoByUsername(res.arena, app.io, app.db, username) catch {
         try res.json(.{
             .code = 1,
             .msg = "账号或者密码错误",

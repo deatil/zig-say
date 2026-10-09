@@ -1,8 +1,9 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 const config = lib.global.config;
 
@@ -49,24 +50,27 @@ fn matchPublicContent(alloc: Allocator, app: *App, req: *httpz.Request) !?Static
     const file_path = req.url.path["/static/".len..];
     const full_path = try std.fs.path.join(alloc, &.{ config.app.public_path, file_path });
     defer alloc.free(full_path);
-
+    
     const absolute_path = if (std.fs.path.isAbsolute(full_path))
         try alloc.dupe(u8, full_path)
     else
-        std.fs.cwd().realpathAlloc(alloc, full_path) catch return null;
+        std.Io.Dir.cwd().realPathFileAlloc(app.io, full_path, alloc) catch return null;
     defer alloc.free(absolute_path);
 
-    const file = std.fs.cwd().openFile(absolute_path, .{ .mode = .read_only }) catch return null;
-    defer file.close();
+    const file = std.Io.Dir.openFileAbsolute(app.io, absolute_path, .{ .mode = .read_only }) catch return null;
+    defer file.close(app.io);
 
-    const stat = try file.stat();
+    const stat = try file.stat(app.io);
     const extension = std.fs.path.extension(file_path);
 
+    const contents = try alloc.alloc(u8, @intCast(stat.size));
+    _ = try file.readPositionalAll(app.io, contents, 0);
+
     return .{
-        .content = try file.readToEndAlloc(alloc, stat.size),
+        .content = contents,
         .mime_type = app.mime_map.get(extension) orelse "application/octet-stream",
         .cache_control = getCacheControl(extension),
-        .last_modified = try formatHttpDate(alloc, stat.mtime),
+        .last_modified = try formatHttpDate(alloc, stat.mtime.toNanoseconds()),
     };
 }
 
@@ -90,7 +94,7 @@ fn getCacheControl(extension: []const u8) []const u8 {
 }
 
 /// Format timestamp to HTTP date format (RFC 7231): "Mon, 29 Oct 2025 12:00:00 GMT"
-fn formatHttpDate(alloc: Allocator, timestamp_ns: i128) ![]const u8 {
+fn formatHttpDate(alloc: Allocator, timestamp_ns: i96) ![]const u8 {
     const secs: i64 = @intCast(@divFloor(timestamp_ns, std.time.ns_per_s));
     const epoch_seconds = std.time.epoch.EpochSeconds{ .secs = @intCast(secs) };
     const epoch_day = epoch_seconds.getEpochDay();

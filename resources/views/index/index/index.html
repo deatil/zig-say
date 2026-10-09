@@ -7,7 +7,7 @@
     <title>{{context.webname}}</title>
     <link rel="stylesheet icon" href="/static/webnav/img/favicon.ico" />
     
-    @partial index/common/head
+    {% include 'index/common/head' %}
 
     <style>
     .topic-page-item {
@@ -17,7 +17,7 @@
 </head>
 
 <body>
-    @partial index/common/top_nav($.loginid)
+    {% include 'index/common/top_nav' %}
 
     <div class="container topic">
         <div class="row">
@@ -29,7 +29,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="topic-page-items">
-                                @for ($.topics) |topic| {
+                                {% for topic in data.topics %}
                                 <div class="media topic-page-item">
                                     <div class="media-body">
                                         <h4 class="media-heading">
@@ -51,32 +51,32 @@
                                         </p>
                                     </div>
                                 </div>
-                                }
+                                {% endfor %}
                             </div>
                             
-                            @if ($.pages > 1) 
+                            {% if data.pages > 1 %} 
                             <div class="topic-page">
                                 <nav aria-label="Page navigation">
                                     <ul class="pager">
-                                        @if ($.page > 1 and $.pages > 1) 
-                                            <li><a href="/?page={{ $.comment_page1 }}">上一页</a></li>
-                                        @end
+                                        {% if (data.page > 1 and data.pages > 1) %}
+                                            <li><a href="/?page={{ data.comment_page1 }}">上一页</a></li>
+                                        {% endif %}
 
-                                        @if (!($.page > 1 and $.pages > 1))
+                                        {% if (data.page > 1 and data.pages > 1) == false %}
                                             <li class="disabled"><a href="#">上一页</a></li>
-                                        @end
+                                        {% endif %}
 
-                                        @if ($.page < $.pages and $.pages > 1) 
-                                            <li><a href="/?page={{ $.comment_page2 }}">下一页</a></li>
-                                        @end
+                                        {% if (data.page < data.pages and data.pages > 1) %}
+                                            <li><a href="/?page={{ data.comment_page2 }}">下一页</a></li>
+                                        {% endif %}
                                         
-                                        @if (!($.page < $.pages and $.pages > 1))
+                                        {% if (data.page < data.pages and data.pages > 1) == false %}
                                             <li class="disabled"><a href="#">下一页</a></li>
-                                        @end
+                                        {% endif %}
                                     </ul>
                                 </nav>
                             </div>
-                            @end
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
         </div>
     </div>
     
-    @partial index/common/footer
+    {% include 'index/common/footer' %}
 
     <script type="text/javascript">
     $(function() {

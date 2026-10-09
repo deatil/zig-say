@@ -1,23 +1,21 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 const config = lib.global.config;
 const views = lib.views;
 const auth = lib.utils.auth;
 const http = lib.utils.http;
 
-const model = @import("./../../model/lib.zig");
-const admin_model = model.admin;
+const admin_model = lib.app.model.admin;
 
 pub fn password(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    _ = app;
     _ = req;
 
-    var data = views.datas(res.arena);
+    const data = try views.datas(res.arena, .{});
 
-    try views.view(res, "admin/profile/password", &data);
+    try views.view(app, res, "admin/profile/password", data);
 }
 
 pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -59,7 +57,7 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
 
     const admin_login = req.header("admin_login") orelse "";
 
-    const admin_info = admin_model.getInfoByUsername(res.arena, app.db, admin_login) catch {
+    const admin_info = admin_model.getInfoByUsername(res.arena, app.io, app.db, admin_login) catch {
         try res.json(.{
             .code = 1,
             .msg = "更改密码失败",
@@ -75,9 +73,9 @@ pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void 
         return;
     }
 
-    const new_pass = try auth.passwordHash(res.arena, newpassword);
+    const new_pass = try auth.passwordHash(res.arena, app.io, newpassword);
 
-    const ok = try admin_model.updatePassword(res.arena, app.db, admin_info.id, new_pass);
+    const ok = try admin_model.updatePassword(res.arena, app.io, app.db, admin_info.id, new_pass);
     if (!ok) {
         try res.json(.{
             .code = 1,

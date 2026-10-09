@@ -11,12 +11,12 @@
 			<img src="/static/admin/admin/images/500.svg" alt="500">
 			<div class="content-r">
 				<h1>404</h1>
-				<p>{{ $.message }}</p>
-                @if ($.url) |url|
-					<a href="{{url}}" class="pear-btn pear-btn-primary">马上跳转</a>
-				@else
+				<p>{{ data.message }}</p>
+				{% if data.url %}
+					<a href="{{ data.url }}" class="pear-btn pear-btn-primary">马上跳转</a>
+				{% else %}
 					<a href="javascript:location.reload();" class="pear-btn pear-btn-primary">刷新重试</a>
-				@end
+				{% endif %}
 			</div>
 		</div>
 	</body>

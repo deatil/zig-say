@@ -1,18 +1,18 @@
 ## zig-say 匿名社区
 
-`zig-say` 是使用 `httpz`, `myzql` 及 `zmpl` 的 `zig` 博客系统
+`zig-say` 是使用 `httpz`, `myzql` 及 `zig-vin` 的 `zig` 博客系统
 
 
 ### 项目介绍
 
 *  使用 `zig` 开发的简易匿名社区系统
-*  核心使用 `httpz`, `myzql` 及 `zmpl` 等开发匿名社区系统
+*  核心使用 `httpz`, `myzql` 及 `zig-vin` 等开发匿名社区系统
 *  系统后台使用 `pear-admin` 后端模板，非前后端分离项目
 
 
 ### 环境要求
 
- - zig >= 0.15.1
+ - zig >= 0.17.0
  - Myzql
 
 
@@ -53,7 +53,7 @@
 
 1. 首先克隆项目到本地
 
-```
+```sh
 git clone https://github.com/deatil/zig-say.git
 ```
 
@@ -71,7 +71,7 @@ git clone https://github.com/deatil/zig-say.git
 
 4. 运行测试
 
-```rust
+```sh
 zig build run
 ```
 
@@ -86,7 +86,7 @@ zig build run
 
  - [myzql](https://github.com/speed2exe/myzql)
  
- - [zmpl](https://github.com/jetzig-framework/zmpl)
+ - [zig-vin](https://github.com/deatil/zig-vin)
 
 
 ### 开源协议

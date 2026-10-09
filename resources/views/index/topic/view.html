@@ -4,10 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>{{ $.topic.title }} - {{context.webname}}</title>
+    <title>{{ data.topic.title }} - {{context.webname}}</title>
     <link rel="stylesheet icon" href="/static/webnav/img/favicon.ico" />
     
-    @partial index/common/head
+    {% include 'index/common/head' %}
 
     <style>
     .topic-page-item {
@@ -23,7 +23,7 @@
 </head>
 
 <body>
-    @partial index/common/top_nav($.loginid)
+    {% include 'index/common/top_nav' %}
     
     <div class="container topic">
         <div class="row">
@@ -41,32 +41,32 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4>
-                                {{ $.topic.title }}
+                                {{ data.topic.title }}
                             </h4>
                             <div class="topic-meta text-muted">
                                 <span class="topic-datetime">
                                     <i class="fa fa-clock-o" aria-hidden="true"></i>  
-                                    {{ $.topic_time }}
+                                    {{ data.topic_time }}
                                 </span>
                             
                                 <span class="topic-author ml-3">
                                     <i class="fa fa-user" aria-hidden="true"></i>  
-                                    {{ $.topic.username }}
+                                    {{ data.topic.username }}
                                 </span>
                             </div>
                         </div>
                         <div class="panel-body topic-content-data">
-                            {{ $.topic.content }}
+                            {{ data.topic.content }}
                         </div>
                     </div>
 
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            评论列表({{ $.comment_count }})
+                            评论列表({{ data.comment_count }})
                         </div>
                         <div class="panel-body">
                             <div class="topic-page-items">
-                                @for ($.comments) |comment| {
+                                {% for comment in data.comments %}
                                 <div class="media topic-page-item">
                                     <div class="media-body">
                                         <p class="text-muted">
@@ -85,44 +85,44 @@
                                         </div>
                                     </div>
                                 </div>
-                                }
+                                {% endfor %}
 
-                                @if ($.comment_count == 0)
+                                {% if data.comment_count == 0 %}
                                     <div class="text-center">
                                         无数据
                                     </div>
-                                @end
+                                {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    @if ($.comment_pages > 1)
+                    {% if data.comment_pages > 1 %}
                         <div class="panel panel-default">
                             <div class="panel-body">
                                 <div class="topic-page">
                                     <nav aria-label="Page navigation">
                                         <ul class="pager" style="margin:0;text-align:left;">
-                                            @if ($.comment_page > 1 and $.comment_pages > 1)
-                                                <li><a href="/topic/{{ $.topic.id }}?page={{ $.comment_page1 }}">上一页</a></li>
-                                            @end
+                                            {% if (data.comment_page > 1 and data.comment_pages > 1) %}
+                                                <li><a href="/topic/{{ data.topic.id }}?page={{ data.comment_page1 }}">上一页</a></li>
+                                            {% endif %}
 
-                                            @if (!($.comment_page > 1 and $.comment_pages > 1))
+                                            {% if (data.comment_page > 1 and data.comment_pages > 1) == false %}
                                                 <li class="disabled"><a href="#">上一页</a></li>
-                                            @end
+                                            {% endif %}
 
-                                            @if ($.comment_page < $.comment_pages and $.comment_pages > 1)
-                                                <li><a href="/topic/{{ $.topic.id }}?page={{ $.comment_page2 }}">下一页</a></li>
-                                            @end
+                                            {% if (data.comment_page < data.comment_pages and data.comment_pages > 1) %}
+                                                <li><a href="/topic/{{ data.topic.id }}?page={{ data.comment_page2 }}">下一页</a></li>
+                                            {% endif %}
 
-                                            @if (!($.comment_page < $.comment_pages and $.comment_pages > 1))
+                                            {% if (data.comment_page < data.comment_pages and data.comment_pages > 1) == false %}
                                                 <li class="disabled"><a href="#">下一页</a></li>
-                                            @end
+                                            {% endif %}
                                         </ul>
                                     </nav>
                                 </div>
                             </div>
                         </div>
-                    @end
+                    {% endif %}
 
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -137,7 +137,7 @@
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="topic_id" value="{{ $.topic.id }}" />
+                                <input type="hidden" name="topic_id" value="{{ data.topic.id }}" />
 
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-10">
@@ -171,7 +171,7 @@
         </div>
     </div>
     
-    @partial index/common/footer
+    {% include 'index/common/footer' %}
 
     <script type="text/javascript" src="/static/topic/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/topic/js/layer/layer.js"></script>

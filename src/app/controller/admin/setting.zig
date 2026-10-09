@@ -1,31 +1,35 @@
 const std = @import("std");
+
+const vin = @import("zig-vin");
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
 const http = lib.utils.http;
 
-const model = @import("./../../model/lib.zig");
-const setting_model = model.setting;
+const setting_model = lib.app.model.setting;
 
 pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;
 
-    var data = views.datas(res.arena);
-    var root = try data.object();
-    var setting_data = try root.put("data", .object);
+    var map: vin.value.Namespace = .{};
 
     // Load all settings from database
-    const settings = try setting_model.getList(res.arena, app.db);
+    const settings = try setting_model.getList(res.arena, app.io, app.db);
     const rows_iter = settings.iter();
-    while (try rows_iter.next()) |row| {
+    while (try rows_iter.next(app.io)) |row| {
         var setting: setting_model.Setting = undefined;
         try row.scan(&setting);
-        try setting_data.put(setting.name, data.string(setting.value));
+
+        const k = try res.arena.dupe(u8, setting.name);
+        const v = try res.arena.dupe(u8, setting.value);
+        try map.set(res.arena, k, .fromString(v));
     }
 
-    try views.view(res, "admin/setting/index", &data);
+    const data: vin.Value = .fromNamespace(&map);
+
+    try views.view(app, res, "admin/setting/index", data);
 }
 
 pub fn save(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
@@ -42,7 +46,7 @@ pub fn save(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const form_data = try http.parseFormData(res.arena, req.body().?);
     var iterator = form_data.iterator();
     while (iterator.next()) |entry| {
-        _ = try setting_model.updateInfo(res.arena, app.db, entry.key_ptr.*, entry.value_ptr.*);
+        _ = try setting_model.updateInfo(res.arena, app.io, app.db, entry.key_ptr.*, entry.value_ptr.*);
     }
 
     try res.json(.{

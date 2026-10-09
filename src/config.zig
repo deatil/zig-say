@@ -2,7 +2,10 @@ const std = @import("std");
 
 const zig_time = @import("zig-time");
 const myzql = @import("myzql");
+const httpz = @import("httpz");
 const constants = myzql.constants;
+const mysql_config = myzql.config;
+const httpz_config = httpz.Config;
 
 pub const App = struct {
     debug: bool = false,
@@ -11,8 +14,7 @@ pub const App = struct {
 };
 
 pub const Server = struct {
-    port: ?u16 = null,
-    address: ?[]const u8 = null,
+    address: httpz_config.Address,
 };
 
 pub const Auth = struct {
@@ -22,7 +24,7 @@ pub const Auth = struct {
 
 pub const DB = struct {
     username: [:0]const u8 = "root",
-    address: std.net.Address = std.net.Address.initIp4(.{ 127, 0, 0, 1 }, 3306),
+    address: mysql_config.Address,
     password: []const u8 = "",
     database: [:0]const u8 = "",
     collation: u8 = constants.utf8mb4_general_ci,
@@ -48,11 +50,10 @@ pub const config = struct {
         .password = "123456", 
         .database = "zig_say", 
 
-        .address =  std.net.Address.initIp4(.{ 192, 168, 56, 1 }, 3306),
+        .address = .{ .ip = std.Io.net.IpAddress.parseLiteral("192.168.56.1:3306") catch unreachable }
     };
 
     pub const server = Server{
-        .port = 5882,
-        // .address = "0.0.0.0",
+        .address = .localhost(5883),
     };
 };

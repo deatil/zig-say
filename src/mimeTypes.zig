@@ -6,10 +6,16 @@ const JsonMimeType = struct {
 };
 
 pub fn generateMimeModule(build: *std.Build) !*std.Build.Module {
-    const file = try std.fs.openFileAbsolute(build.pathFromRoot("./resources/mime/mimeData.json"), .{});
-    const stat = try file.stat();
-    const json = try file.readToEndAlloc(build.allocator, @intCast(stat.size));
+    const io = build.graph.io;
+    const mime_path = try std.Io.Dir.cwd().realPathFileAlloc(io, "./resources/mime/mimeData.json", build.allocator);
+
+    const file = try std.Io.Dir.openFileAbsolute(io, mime_path, .{});
+    const stat = try file.stat(io);
+
+    const json = try build.allocator.alloc(u8, @intCast(stat.size));
     defer build.allocator.free(json);
+    
+    _ = try file.readPositionalAll(io, json, 0);
 
     const parsed_mime_types = try std.json.parseFromSlice(
         []JsonMimeType,
@@ -21,23 +27,20 @@ pub fn generateMimeModule(build: *std.Build) !*std.Build.Module {
     var buf = std.array_list.Managed(u8).init(build.allocator);
     defer buf.deinit();
 
-    const writer = buf.writer();
-
-    try writer.writeAll("pub const MimeType = struct { name: []const u8, file_type: []const u8 };");
-    try writer.writeAll("pub const mime_types = [_]MimeType{\n");
+    try buf.appendSlice("pub const MimeType = struct { name: []const u8, file_type: []const u8 };");
+    try buf.appendSlice("pub const mime_types = [_]MimeType{\n");
     for (parsed_mime_types.value) |mime_type| {
         for (mime_type.fileTypes) |file_type| {
-            const entry = try std.fmt.allocPrint(
-                build.allocator,
+            const entry = try build.allocator.print(
                 \\.{{ .name = "{s}", .file_type = "{s}" }},
                 \\
             ,
                 .{ mime_type.name, file_type },
             );
-            try writer.writeAll(entry);
+            try buf.appendSlice(entry);
         }
     }
-    try writer.writeAll("};\n");
+    try buf.appendSlice("};\n");
 
     const write_files = build.addWriteFiles();
     const generated_file = write_files.add("mime_types.zig", buf.items);

@@ -52,13 +52,13 @@
 									<div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
 										<div class="pear-card2">
 											<div class="title">话题数量</div>
-											<div class="count pear-text">{{ $.topic_count }}</div>
+											<div class="count pear-text">{{ data.topic_count }}</div>
 										</div>
 									</div>
 									<div class="layui-col-md6 layui-col-sm6 layui-col-xs6">
 										<div class="pear-card2">
 											<div class="title">评论数量</div>
-											<div class="count pear-text">{{ $.comment_count }}</div>
+											<div class="count pear-text">{{ data.comment_count }}</div>
 										</div>
 									</div>
 								</div>
@@ -82,13 +82,13 @@
 					<div class="layui-card-header">最新话题</div>
 					<div class="layui-card-body">
 						<ul class="pear-card-status">
-							@for ($.new_topics) |new_topic| {
+							{% for new_topic in data.new_topics %}
 								<li>
 									<p>{{new_topic.title}}</p>
 									<span>{{new_topic.add_time}}</span>
 									<a href="javascript:;" class="pear-btn pear-btn-primary pear-btn-xs pear-reply">编辑</a>
 								</li>
-							}
+							{% endfor %}
 						</ul>
 					</div>
 				</div>

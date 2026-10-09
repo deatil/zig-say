@@ -1,12 +1,12 @@
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const config = lib.global.config;
 
-const controller = @import("./../controller/lib.zig");
+const controller = @import("controller.zig");
 
 const index = controller.index;
 const admin = controller.admin;
 const static = controller.static;
-const error_handler = controller.error_handler;
+const errors = controller.errors;
 
 pub fn route(router: anytype) void {
     indexRoute(router);
@@ -15,8 +15,8 @@ pub fn route(router: anytype) void {
     staticRoute(router);
 
     // Fallback handlers for all unmatched routes (must be last)
-    router.all("/admin/*", error_handler.error_handler.notFound, .{});
-    router.all("/*", error_handler.error_handler.notFound, .{});
+    router.all("/admin/*", errors.notFound, .{});
+    router.all("/*", errors.notFound, .{});
 }
 
 pub fn indexRoute(router: anytype) void {
@@ -74,5 +74,5 @@ pub fn adminRoute(router: anytype) void {
 }
 
 pub fn staticRoute(router: anytype) void {
-    router.get("/static/*", static.static.index, .{});
+    router.get("/static/*", static.index, .{});
 }

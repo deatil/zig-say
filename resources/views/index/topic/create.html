@@ -7,11 +7,11 @@
     <title>添加话题 - {{context.webname}}</title>
     <link rel="stylesheet icon" href="/static/topic/img/favicon.ico" />
 
-    @partial index/common/head
+    {% include 'index/common/head' %}
 </head>
 
 <body>
-    @partial index/common/top_nav($.loginid)
+    {% include 'index/common/top_nav' %}
     
     <div class="container topic">
         <div class="row">
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    @partial index/common/footer
+    {% include 'index/common/footer' %}
     
     <script type="text/javascript" src="/static/topic/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/topic/js/layer/layer.js"></script>

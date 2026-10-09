@@ -19,7 +19,7 @@
                             <label class="layui-form-label">网站名称</label>
                             <div class="layui-input-block">
                                 <input type="text" name="website_name" 
-                                    value="{{ $.data.website_name }}" 
+                                    value="{{ data.website_name }}" 
                                     lay-verify="title" autocomplete="off" 
                                     placeholder="请输入网站名称" class="layui-input">
                             </div>
@@ -28,7 +28,7 @@
                             <label class="layui-form-label">网站关键字</label>
                             <div class="layui-input-block">
                                 <input type="text"  name="website_keywords" 
-                                    value="{{ $.data.website_keywords }}" 
+                                    value="{{ data.website_keywords }}" 
                                     lay-verify="title" autocomplete="off" 
                                     placeholder="请输入网站关键字" class="layui-input">
                             </div>
@@ -37,7 +37,7 @@
                         <div class="layui-form-item">
                             <label class="layui-form-label">网站描述</label>
                             <div class="layui-input-block">
-                                <textarea name="website_description" placeholder="请输入网站描述" class="layui-textarea">{{ $.data.website_description }}</textarea>
+                                <textarea name="website_description" placeholder="请输入网站描述" class="layui-textarea">{{ data.website_description }}</textarea>
                             </div>
                         </div>
         
@@ -45,7 +45,7 @@
                             <label class="layui-form-label">版权信息</label>
                             <div class="layui-input-block">
                                 <input type="text" name="website_copyright" 
-                                    value="{{ $.data.website_copyright }}" 
+                                    value="{{ data.website_copyright }}" 
                                     lay-verify="title" autocomplete="off" 
                                     placeholder="请输入版权信息" class="layui-input">
                             </div>
@@ -55,7 +55,7 @@
                             <label class="layui-form-label">网站备案</label>
                             <div class="layui-input-block">
                                 <input type="text" name="website_beian" 
-                                    value="{{ $.data.website_beian }}" 
+                                    value="{{ data.website_beian }}" 
                                     lay-verify="title" autocomplete="off" 
                                     placeholder="请输入网站备案" class="layui-input">
                             </div>
@@ -64,13 +64,13 @@
                         <div class="layui-form-item">
                             <label class="layui-form-label">网站状态</label>
                             <div class="layui-input-block">
-                                @if ($.data.website_status == "1") 
+                                {% if data.website_status == "1" %}
                                     <input type="radio" name="website_status" value="1" title="正常" checked>
                                     <input type="radio" name="website_status" value="0" title="关闭维护">
-                                @else
+                                {% else %}
                                     <input type="radio" name="website_status" value="1" title="正常">
                                     <input type="radio" name="website_status" value="0" title="关闭维护" checked>
-                                @end
+                                {% endif %}
                             </div>
                         </div>
 
@@ -103,8 +103,9 @@
                 $.ajax({
                     url: "/admin/setting",
                     data: data.field,
+                    contentType: 'application/x-www-form-urlencoded',
                     dataType: 'json',
-                    type: 'post',
+                    type: 'POST',
                     success: function(result) {
                         if (result.code == 0) {
                             layer.msg(result.msg, {icon:1,time:1000}, function() {

@@ -1,7 +1,7 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-lib");
+const lib = @import("say-pkg");
 const conf = lib.global.config;
 const auth = lib.utils.auth;
 const http = lib.utils.http;

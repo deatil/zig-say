@@ -1,24 +1,24 @@
 .{
     .name = .zigsay,
     .fingerprint = 0x2a2010f594d1ab96,
-    .version = "1.0.0",
-    .minimum_zig_version = "0.15.1",
+    .version = "1.2.0",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .myzql = .{
-            .url = "https://github.com/speed2exe/myzql/archive/refs/tags/0.15.1.tar.gz",
-            .hash = "myzql-0.0.0-XU5aAP_0AgCPYPMy61wPn8RgtS_wlJK5kRrU38taGTrY",
+            .url = "git+https://github.com/speed2exe/myzql?ref=main#8c06708189a14bc38e424befd1f8c003a3e28071",
+            .hash = "myzql-0.0.0-XU5aAI4HBAAalULDK_UnCAaMA1fBfQqf4065zZZte4nZ",
         },
         .httpz = .{
-            .url = "git+https://github.com/karlseguin/http.zig?ref=master#9c918865554c82648cd5eeff52b373d291625edc",
-            .hash = "httpz-0.0.0-PNVzrBXyBgBR5yTLW6dUTWtXSahqFsLdEwFI3tVy5J72",
-        },
-        .zmpl = .{
-            .url = "git+https://github.com/jetzig-framework/zmpl#f75520e0dabf7bb397c96841aa2d10e69e46c4e8",
-            .hash = "zmpl-0.0.1-SYFGBh2oAwB7sk3j-dJO2q5zUZh-rpDJVP_JHWLpR83n",
+            .url = "git+https://github.com/karlseguin/http.zig?ref=master#8aeb4e522b122fd2d9ba6731480b5d3878d2845f",
+            .hash = "httpz-0.0.0-PNVzrPoWCQDh-mpVLlE6Ryjobya3u-oDwOTq0aoQHdms",
         },
         .zigtime = .{
-            .url = "git+https://github.com/deatil/zig-time?ref=v1.2.0#5c62c666350da909019f91f682471e14ba6fbc3f",
-            .hash = "zig_time-1.2.0-FD_-ClelAQB4hP6Tf3zIp3csi91UlUuO55dak6gbaXh8",
+            .url = "git+https://github.com/deatil/zig-time?ref=main#8bb17ec94acfafcb18c14a25bf9e4c23b9d7b411",
+            .hash = "zig_time-1.3.4-FD_-CkW4AQBOOrEqtEGuqgZypL88bmiyPGk99riOn6Gm",
+        },
+        .@"zig-vin" = .{
+            .url = "git+https://github.com/deatil/zig-vin?ref=main#87dea51591938ffcf47a0268b2e8706ba268952d",
+            .hash = "zig_vin-0.0.3-Lkc0nGg2BwAteU01rrtca0aG_KH8ykdbHoPVwZadaWE_",
         },
     },
     .paths = .{
