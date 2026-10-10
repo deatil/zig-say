@@ -105,7 +105,7 @@ fn formatHttpDate(alloc: Allocator, timestamp_ns: i96) ![]const u8 {
     const weekdays = [_][]const u8{ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
     const months = [_][]const u8{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-    return std.fmt.allocPrint(alloc, "{s}, {d:0>2} {s} {d} {d:0>2}:{d:0>2}:{d:0>2} GMT", .{
+    return alloc.print("{s}, {d:0>2} {s} {d} {d:0>2}:{d:0>2}:{d:0>2} GMT", .{
         weekdays[@intCast((epoch_day.day + 3) % 7)],
         month_day.day_index + 1,
         months[month_day.month.numeric() - 1],

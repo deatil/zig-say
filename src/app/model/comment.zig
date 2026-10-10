@@ -55,7 +55,7 @@ pub fn getList(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !Result
             \\LIMIT ?, ?
         ;
 
-        const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
+        const new_keywords = try alloc.print("%{s}%", .{where.keywords});
         const params = .{ new_keywords, where.keywords, status, where.order, where.offset, where.limit };
 
         const prep_res = try conn.prepare(alloc, io, query);
@@ -77,7 +77,7 @@ pub fn getList(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !Result
         \\LIMIT ?, ?
     ;
 
-    const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
+    const new_keywords = try alloc.print("%{s}%", .{where.keywords});
     const params = .{ new_keywords, where.keywords, where.order, where.offset, where.limit };
 
     const prep_res = try conn.prepare(alloc, io, query);
@@ -99,7 +99,7 @@ pub fn getCount(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !u64 {
             \\LIMIT 1
         ;
 
-        const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
+        const new_keywords = try alloc.print("%{s}%", .{where.keywords});
         const params = .{ new_keywords, where.keywords, status };
 
         const prep_res = try conn.prepare(alloc, io, query);
@@ -127,7 +127,7 @@ pub fn getCount(alloc: Allocator, io: Io, conn: *Conn, where: QueryWhere) !u64 {
         \\LIMIT 1
     ;
 
-    const new_keywords = try std.fmt.allocPrint(alloc, "%{s}%", .{where.keywords});
+    const new_keywords = try alloc.print("%{s}%", .{where.keywords});
     const params = .{ new_keywords, where.keywords };
 
     const prep_res = try conn.prepare(alloc, io, query);

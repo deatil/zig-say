@@ -4,7 +4,9 @@ const Allocator = std.mem.Allocator;
 const httpz = @import("httpz");
 const vin = @import("zig-vin");
 
-const App = @import("say-pkg").global.App;
+const pkg = @import("say-pkg");
+const App = pkg.global.App;
+const config = pkg.config;
 
 pub fn datas(alloc: Allocator, val: anytype) !vin.Value {
     const ctx = try vin.valueFrom(alloc, val);
@@ -19,12 +21,19 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
         },
     });
 
-    const output = app.view.renderTemplateAlloc(resp.arena, tpl, ctx, null) catch |err| {
-        std.debug.print("error: {any} \n", .{err});
+    var diag: vin.Diagnostic = undefined;
+
+    const output = app.view.renderTemplateAlloc(resp.arena, tpl, ctx, &diag) catch {
+        var msg = try resp.arena.dupe(u8, "View Not Found");
+
+        const debug = config.app.debug;
+        if (debug) {
+            msg = try resp.arena.print("[View]{s}: {f}", .{tpl, diag});
+        }
 
         resp.status = 200;
         resp.header("content-type", "text/html");
-        resp.body = "View Not Found";
+        resp.body = msg;
 
         return;
     };

@@ -9,7 +9,6 @@ const Conn = myzql.conn.Conn;
 const lib = @import("say-pkg");
 
 pub const config = lib.config;
-pub const DB = config.DB;
 
 pub const mime = @import("mime.zig");
 

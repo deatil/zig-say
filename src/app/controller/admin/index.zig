@@ -38,8 +38,10 @@ pub fn console(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         var topic: topic_model.TopicUser = undefined;
         try row.scan(&topic);
 
+        const t = try res.arena.dupe(u8, topic.title);
+
         try new_topics.append(res.arena, .{
-            .title = topic.title,
+            .title = t,
             .add_time = try time.Time.fromTimestamp(@as(i64, @intCast(topic.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
         });
     }

@@ -60,7 +60,7 @@ git clone https://github.com/deatil/zig-say.git
 2. 然后配置数据库等信息
 
 ```
-/src/utils/config.zig
+/src/config.zig
 ```
 
 3. 最后导入 sql 数据到数据库
