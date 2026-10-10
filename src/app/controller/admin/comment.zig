@@ -4,7 +4,6 @@ const httpz = @import("httpz");
 const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
-const http = lib.utils.http;
 
 const comment_model = lib.app.model.comment;
 
@@ -129,15 +128,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const content = fd.get("content") orelse "";
     const status = fd.get("status") orelse "0";
@@ -152,6 +143,12 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     comment_info.content = content;
     comment_info.status = std.fmt.parseInt(u16, status, 10) catch 0;
+
+    if (comment_info.add_ip.len > 0) {
+        comment_info.add_ip = try res.arena.dupe(u8, comment_info.add_ip);
+    } else {
+        comment_info.add_ip = try res.arena.dupe(u8, "0.0.0.0");
+    }
 
     const ok: bool = comment_model.updateInfoById(res.arena, app.io, app.db, new_id, .{
         .user_id = comment_info.user_id,

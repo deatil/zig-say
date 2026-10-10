@@ -1,7 +1,7 @@
 .{
     .name = .zigsay,
     .fingerprint = 0x2a2010f594d1ab96,
-    .version = "1.1.1",
+    .version = "1.1.2",
     .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .myzql = .{

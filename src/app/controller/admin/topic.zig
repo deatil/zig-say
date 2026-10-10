@@ -4,7 +4,6 @@ const httpz = @import("httpz");
 const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
-const http = lib.utils.http;
 
 const topic_model = lib.app.model.topic;
 
@@ -131,15 +130,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const title = fd.get("title") orelse "";
     const content = fd.get("content") orelse "";

@@ -15,6 +15,7 @@ pub const App = struct {
 
 pub const Server = struct {
     address: httpz_config.Address,
+    request: httpz_config.Request,
 };
 
 pub const Auth = struct {
@@ -49,11 +50,17 @@ pub const config = struct {
         .username = "root",   
         .password = "123456", 
         .database = "zig_say", 
-
         .address = .{ .ip = std.Io.net.IpAddress.parseLiteral("192.168.56.1:3306") catch unreachable }
     };
 
     pub const server = Server{
         .address = .localhost(5883),
+        .request = .{
+            .max_header_count = 100,
+            .max_param_count = 100,
+            .max_query_count = 100,
+            .max_form_count = 100,
+            .max_multiform_count = 100,
+        },
     };
 };

@@ -41,8 +41,6 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         var topic: topic_model.TopicUser = undefined;
         try row.scan(&topic);
 
-        std.debug.print("{any} \n", .{topic});
-
         const t = try res.arena.dupe(u8, topic.title);
         const u = try res.arena.dupe(u8, topic.username orelse "[empty]");
 

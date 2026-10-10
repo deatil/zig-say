@@ -40,15 +40,7 @@ pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         }, .{});
     }
 
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "账号不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const username = fd.get("username") orelse "";
     const password = fd.get("password") orelse "";

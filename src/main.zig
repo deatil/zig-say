@@ -44,6 +44,7 @@ pub fn main(init: std.process.Init) !void {
 
     var server = try Server.init(io, allocator, .{
         .address = config.server.address,
+        .request = config.server.request,
     }, &app);
 
     var router = try server.router(.{});

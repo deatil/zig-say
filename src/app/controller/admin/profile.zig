@@ -6,7 +6,6 @@ const App = lib.global.App;
 const config = lib.global.config;
 const views = lib.views;
 const auth = lib.utils.auth;
-const http = lib.utils.http;
 
 const admin_model = lib.app.model.admin;
 
@@ -19,15 +18,7 @@ pub fn password(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn passwordSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const oldpassword = fd.get("oldpassword") orelse "";
     const newpassword = fd.get("newpassword") orelse "";

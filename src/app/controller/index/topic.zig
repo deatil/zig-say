@@ -7,7 +7,6 @@ const zig_time = @import("zig-time");
 const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
-const http = lib.utils.http;
 
 const model = lib.app.model;
 const topic_model = model.topic;
@@ -121,15 +120,7 @@ pub fn create(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "发表评论失败",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const title = fd.get("title") orelse "";
     const content = fd.get("content") orelse "";
@@ -187,15 +178,7 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "回复话题失败",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const topic_id = fd.get("topic_id") orelse "";
     const content = fd.get("content") orelse "";

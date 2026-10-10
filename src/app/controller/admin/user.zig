@@ -5,7 +5,6 @@ const zig_time = @import("zig-time");
 const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
-const http = lib.utils.http;
 
 const user_model = lib.app.model.user;
 
@@ -93,15 +92,7 @@ pub fn add(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn addSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const cookie = fd.get("cookie") orelse "";
     if (cookie.len == 0) {
@@ -179,15 +170,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
-    const fd = try http.parseFormData(res.arena, req.body().?);
+    const fd = try req.formData();
 
     const username = fd.get("username") orelse "";
     const cookie = fd.get("cookie") orelse "";

@@ -6,7 +6,6 @@ const httpz = @import("httpz");
 const lib = @import("say-pkg");
 const App = lib.global.App;
 const views = lib.views;
-const http = lib.utils.http;
 
 const setting_model = lib.app.model.setting;
 
@@ -33,20 +32,11 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn save(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    // Validate request body
-    if (req.body() == null) {
-        try res.json(.{
-            .code = 1,
-            .msg = "提交数据不能为空",
-        }, .{});
-        return;
-    }
-
     // Parse form data and update each setting
-    const form_data = try http.parseFormData(res.arena, req.body().?);
+    const form_data = try req.formData();
     var iterator = form_data.iterator();
     while (iterator.next()) |entry| {
-        _ = try setting_model.updateInfo(res.arena, app.io, app.db, entry.key_ptr.*, entry.value_ptr.*);
+        _ = try setting_model.updateInfo(res.arena, app.io, app.db, entry.key, entry.value);
     }
 
     try res.json(.{
