@@ -102,6 +102,8 @@ fn initView(alloc: Allocator, io: std.Io) !vin.Environment {
         },
     };
 
-    const env = try vin.Environment.initWithLoader(alloc, .{}, dl_ptr.loader());
+    var env = try vin.Environment.initWithLoader(alloc, .{}, dl_ptr.loader());
+    env.withIo(io);
+
     return env;
 }

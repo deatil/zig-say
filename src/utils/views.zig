@@ -23,12 +23,16 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
 
     var diag: vin.Diagnostic = undefined;
 
-    const output = app.view.renderTemplateAlloc(resp.arena, tpl, ctx, &diag) catch {
+    const output = app.view.renderTemplateAlloc(tpl, ctx, &diag) catch |err| {
         var msg = try resp.arena.dupe(u8, "View Not Found");
 
         const debug = config.app.debug;
         if (debug) {
-            msg = try resp.arena.print("[View]{s}: {f}", .{tpl, diag});
+            if (diag.len > 0) {
+                msg = try resp.arena.print("[View]{s}: {f}", .{tpl, diag});
+            } else {
+                msg = try resp.arena.dupe(u8, @errorName(err));
+            }
         }
 
         resp.status = 200;
