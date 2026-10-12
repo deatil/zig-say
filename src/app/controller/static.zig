@@ -3,9 +3,9 @@ const Allocator = std.mem.Allocator;
 
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const config = lib.global.config;
+const say = @import("say");
+const config = say.global.config;
+const App = say.global.App;
 
 pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const resource = try matchPublicContent(res.arena, app, req) orelse {

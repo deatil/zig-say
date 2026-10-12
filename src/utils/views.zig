@@ -4,7 +4,7 @@ const Allocator = std.mem.Allocator;
 const httpz = @import("httpz");
 const vin = @import("zig-vin");
 
-const pkg = @import("say-pkg");
+const pkg = @import("say");
 const App = pkg.global.App;
 const config = pkg.config;
 

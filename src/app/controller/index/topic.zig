@@ -4,11 +4,11 @@ const httpz = @import("httpz");
 const vin = @import("zig-vin");
 const zig_time = @import("zig-time");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const views = lib.views;
+const say = @import("say");
+const App = say.global.App;
+const views = say.views;
 
-const model = lib.app.model;
+const model = say.app.model;
 const topic_model = model.topic;
 const comment_model = model.comment;
 const user_model = model.user;

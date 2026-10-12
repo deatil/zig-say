@@ -1,13 +1,13 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const config = lib.global.config;
-const views = lib.views;
-const auth = lib.utils.auth;
+const say = @import("say");
+const config = say.global.config;
+const views = say.views;
+const auth = say.utils.auth;
+const App = say.global.App;
 
-const admin_model = lib.app.model.admin;
+const admin_model = say.app.model.admin;
 
 pub fn password(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;

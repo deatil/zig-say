@@ -1,12 +1,12 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const views = lib.views;
-const time = lib.utils.time.time;
+const say = @import("say");
+const views = say.views;
+const time = say.utils.time.time;
+const App = say.global.App;
 
-const model = lib.app.model;
+const model = say.app.model;
 const topic_model = model.topic;
 const comment_model = model.comment;
 

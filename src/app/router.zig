@@ -1,5 +1,5 @@
-const lib = @import("say-pkg");
-const config = lib.global.config;
+const say = @import("say");
+const config = say.global.config;
 
 const controller = @import("controller.zig");
 

@@ -1,10 +1,10 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const conf = lib.global.config;
-const auth = lib.utils.auth;
-const http = lib.utils.http;
+const say = @import("say");
+const conf = say.global.config;
+const auth = say.utils.auth;
+const http = say.utils.http;
 
 const AdminAuth = @This();
 

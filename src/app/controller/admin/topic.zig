@@ -1,11 +1,11 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const views = lib.views;
+const say = @import("say");
+const views = say.views;
+const App = say.global.App;
 
-const topic_model = lib.app.model.topic;
+const topic_model = say.app.model.topic;
 
 pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;

@@ -3,13 +3,13 @@ const std = @import("std");
 const httpz = @import("httpz");
 const zig_time = @import("zig-time");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const views = lib.views;
-const auth = lib.utils.auth;
-const http = lib.utils.http;
+const say = @import("say");
+const views = say.views;
+const auth = say.utils.auth;
+const http = say.utils.http;
+const App = say.global.App;
 
-const user_model = lib.app.model.user;
+const user_model = say.app.model.user;
 
 pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;

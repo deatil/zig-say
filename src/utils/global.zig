@@ -6,9 +6,9 @@ const vin = @import("zig-vin");
 const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
 
-const lib = @import("say-pkg");
+const say = @import("say");
 
-pub const config = lib.config;
+pub const config = say.config;
 
 pub const mime = @import("mime.zig");
 

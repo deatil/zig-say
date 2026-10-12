@@ -1,9 +1,9 @@
 const std = @import("std");
 
 const zig_time = @import("zig-time");
-const lib = @import("say-pkg");
+const say = @import("say");
 
-const config = lib.config;
+const config = say.config;
 
 pub const time = zig_time;
 

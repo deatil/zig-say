@@ -3,11 +3,11 @@ const std = @import("std");
 const vin = @import("zig-vin");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const views = lib.views;
+const say = @import("say");
+const views = say.views;
+const App = say.global.App;
 
-const setting_model = lib.app.model.setting;
+const setting_model = say.app.model.setting;
 
 pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;

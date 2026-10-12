@@ -1,18 +1,18 @@
 const std = @import("std");
 const Io = std.Io;
 
-const mimeTypes = @import("src/mimeTypes.zig");
+const mime_types = @import("src/mime_types.zig");
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib_mod = b.createModule(.{
+    const say_mod = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
-    lib_mod.addImport("say-pkg", lib_mod);
+    say_mod.addImport("say", say_mod);
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -20,11 +20,11 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    exe_mod.addImport("say-pkg", lib_mod);
+    exe_mod.addImport("say", say_mod);
 
     const lib = b.addLibrary(.{
         .name = "zig-say",
-        .root_module = lib_mod,
+        .root_module = say_mod,
     });
     b.installArtifact(lib);
 
@@ -40,30 +40,30 @@ pub fn build(b: *std.Build) !void {
     const opts = b.addOptions();
     opts.addOption([]const u8, "tmp_path", tmp_path);
     exe.root_module.addImport("say-opts", opts.createModule());
-    lib_mod.addImport("say-opts", opts.createModule());
+    say_mod.addImport("say-opts", opts.createModule());
 
     const zig_vin_dep = b.dependency("zig-vin", .{});
     exe.root_module.addImport("zig-vin", zig_vin_dep.module("zig-vin"));
-    lib_mod.addImport("zig-vin", zig_vin_dep.module("zig-vin"));
+    say_mod.addImport("zig-vin", zig_vin_dep.module("zig-vin"));
 
     const httpz = b.dependency("httpz", .{
         .target = target,
         .optimize = optimize,
     });
     exe.root_module.addImport("httpz", httpz.module("httpz"));
-    lib_mod.addImport("httpz", httpz.module("httpz"));
+    say_mod.addImport("httpz", httpz.module("httpz"));
 
     const myzql_dep = b.dependency("myzql", .{});
     exe.root_module.addImport("myzql", myzql_dep.module("myzql"));
-    lib_mod.addImport("myzql", myzql_dep.module("myzql"));
+    say_mod.addImport("myzql", myzql_dep.module("myzql"));
 
-    const mime_module = try mimeTypes.generateMimeModule(b);
+    const mime_module = try mime_types.generateMimeModule(b);
     exe.root_module.addImport("mime_types", mime_module);
-    lib_mod.addImport("mime_types", mime_module);
+    say_mod.addImport("mime_types", mime_module);
 
     const zig_time_dep = b.dependency("zigtime", .{});
     exe.root_module.addImport("zig-time", zig_time_dep.module("zig-time"));
-    lib_mod.addImport("zig-time", zig_time_dep.module("zig-time"));
+    say_mod.addImport("zig-time", zig_time_dep.module("zig-time"));
 
     b.installArtifact(exe);
 
@@ -74,7 +74,7 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     const lib_unit_tests = b.addTest(.{
-        .root_module = lib_mod,
+        .root_module = say_mod,
     });
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);

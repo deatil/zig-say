@@ -5,21 +5,22 @@ const Allocator = std.mem.Allocator;
 const httpz = @import("httpz");
 const vin = @import("zig-vin");
 const time = @import("zig-time");
+
 const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
 
-const lib = @import("say-pkg");
-const App = lib.global.App;
-const config = lib.global.config;
-const mime = lib.global.mime;
+const say = @import("say");
+const config = say.global.config;
+const mime = say.global.mime;
+const App = say.global.App;
+
+const Logger = say.app.middleware.Logger;
+const AdminAuth = say.app.middleware.AdminAuth;
+const route = say.app.router.route;
 
 const opts = @import("say-opts");
 
 const Server = httpz.Server(*App);
-
-const Logger = lib.app.middleware.Logger;
-const AdminAuth = lib.app.middleware.AdminAuth;
-const route = lib.app.router.route;
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;

@@ -1,8 +1,8 @@
 const std = @import("std");
 const httpz = @import("httpz");
 
-const lib = @import("say-pkg");
-const time = lib.utils.time;
+const say = @import("say");
+const time = say.utils.time;
 
 const Logger = @This();
 
