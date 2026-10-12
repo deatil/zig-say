@@ -28,10 +28,10 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
 
         const debug = config.app.debug;
         if (debug) {
-            if (diag.len > 0) {
+            if (diag.len > 0 and diag.len <= 512) {
                 msg = try resp.arena.print("[View]{s}: {f}", .{tpl, diag});
             } else {
-                msg = try resp.arena.dupe(u8, @errorName(err));
+                msg = try resp.arena.print("[View]{s}: {s}", .{tpl, @errorName(err)});
             }
         }
 
