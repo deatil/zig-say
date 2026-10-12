@@ -4,9 +4,9 @@ const Allocator = std.mem.Allocator;
 const httpz = @import("httpz");
 const vin = @import("zig-vin");
 
-const pkg = @import("say");
-const App = pkg.global.App;
-const config = pkg.config;
+const say = @import("say");
+const App = say.global.App;
+const config = say.config;
 
 pub fn datas(alloc: Allocator, val: anytype) !vin.Value {
     const ctx = try vin.valueFrom(alloc, val);
@@ -17,7 +17,7 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
     const ctx = try vin.valueFrom(resp.arena, .{
         .data = data,
         .context = .{
-            .webname = "Zig-say",
+            .webname = config.app.name,
         },
     });
 

@@ -157,7 +157,7 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     topic_info.views = std.fmt.parseInt(u64, views_data, 10) catch 0;
     topic_info.status = std.fmt.parseInt(u16, status, 10) catch 0;
 
-    const ok: bool = topic_model.updateInfoById(res.arena, app.io, app.db, new_id, .{
+    const upres = topic_model.updateInfoById(res.arena, app.io, app.db, new_id, .{
         .user_id = topic_info.user_id,
         .title = topic_info.title,
         .content = topic_info.content,
@@ -165,7 +165,13 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .status = topic_info.status,
         .add_time = topic_info.add_time,
         .add_ip = topic_info.add_ip,
-    }) catch false;
+    });
+
+    var ok: bool = true;
+    if (upres) |_| {} else |_| {
+        ok = false;
+    }
+
     if (!ok) {
         try res.json(.{
             .code = 1,

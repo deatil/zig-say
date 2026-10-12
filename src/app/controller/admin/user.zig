@@ -197,7 +197,13 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     user_info.sign = sign;
     user_info.status = std.fmt.parseInt(u16, status, 10) catch 0;
 
-    const ok: bool = user_model.updateInfoById(res.arena, app.io, app.db, new_id, user_info) catch false;
+    const upres = user_model.updateInfoById(res.arena, app.io, app.db, new_id, user_info);
+
+    var ok: bool = true;
+    if (upres) |_| {} else |_| {
+        ok = false;
+    }
+
     if (!ok) {
         try res.json(.{
             .code = 1,

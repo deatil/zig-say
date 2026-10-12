@@ -150,14 +150,20 @@ pub fn editSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         comment_info.add_ip = try res.arena.dupe(u8, "0.0.0.0");
     }
 
-    const ok: bool = comment_model.updateInfoById(res.arena, app.io, app.db, new_id, .{
+    const upres = comment_model.updateInfoById(res.arena, app.io, app.db, new_id, .{
         .user_id = comment_info.user_id,
         .topic_id = comment_info.topic_id,
         .content = comment_info.content,
         .status = comment_info.status,
         .add_time = comment_info.add_time,
         .add_ip = comment_info.add_ip,
-    }) catch false;
+    });
+
+    var ok: bool = true;
+    if (upres) |_| {} else |_| {
+        ok = false;
+    }
+
     if (!ok) {
         try res.json(.{
             .code = 1,

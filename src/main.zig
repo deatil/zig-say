@@ -70,7 +70,7 @@ fn showMsg(allocator: Allocator, io: Io) !void {
 
     const time_string = try time.now(io).formatAlloc(allocator, "YYYY-MM-DD HH:mm:ss");
 
-    std.debug.print("Zig-say started \n", .{});
+    std.debug.print("Zig-say started. \n", .{});
     std.debug.print("Run time: {s} \n", .{time_string});
     std.debug.print("Server address: {s} \n", .{address_string});
 }

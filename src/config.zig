@@ -8,14 +8,10 @@ const mysql_config = myzql.config;
 const httpz_config = httpz.Config;
 
 pub const App = struct {
+    name: []const u8 = "",
     debug: bool = false,
     public_path: []const u8 = "",
     loc: zig_time.Location = zig_time.CTT,
-};
-
-pub const Server = struct {
-    address: httpz_config.Address,
-    request: httpz_config.Request,
 };
 
 pub const Auth = struct {
@@ -34,8 +30,14 @@ pub const DB = struct {
     multi_statements: bool = false,
 };
 
+pub const Server = struct {
+    address: httpz_config.Address,
+    request: httpz_config.Request,
+};
+
 pub const config = struct {
     pub const app = App{
+        .name = "Zig-say",
         .debug = true,
         .public_path = "resources/static",
         .loc = zig_time.CTT,
@@ -50,7 +52,9 @@ pub const config = struct {
         .username = "root",   
         .password = "123456", 
         .database = "zig_say", 
-        .address = .{ .ip = std.Io.net.IpAddress.parseLiteral("192.168.56.1:3306") catch unreachable }
+        .address = .{ 
+            .ip = std.Io.net.IpAddress.parseLiteral("192.168.56.1:3306") catch unreachable, 
+        }
     };
 
     pub const server = Server{
