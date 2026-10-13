@@ -99,8 +99,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         try map.set(res.arena, "comment_page2", .fromInt(new_page + 1));
     }
 
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
     try map.set(res.arena, "loginid", .fromString(loginid));
 
     const data: vin.Value = .fromNamespace(&map);
@@ -109,8 +108,12 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn create(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
+    if (loginid.len == 0) {
+        res.status = 303;
+        res.header("Location", "/auth/login");
+        return;
+    }
 
     const data = try views.datas(res.arena, .{
         .loginid = loginid,
@@ -140,8 +143,7 @@ pub fn createSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
 
     const user_info = user_model.getInfoByCookie(res.arena, app.io, app.db, loginid) catch user_model.User{};
     if (user_info.id == 0) {
@@ -207,8 +209,7 @@ pub fn addComment(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
 
     const user_info = user_model.getInfoByCookie(res.arena, app.io, app.db, loginid) catch user_model.User{};
     if (user_info.id == 0) {

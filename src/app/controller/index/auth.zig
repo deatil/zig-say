@@ -20,8 +20,7 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 }
 
 pub fn loginSave(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
     if (loginid.len > 0) {
         try res.json(.{
             .code = 1,

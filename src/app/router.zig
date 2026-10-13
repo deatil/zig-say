@@ -8,69 +8,88 @@ const admin = controller.admin;
 const static = controller.static;
 const errors = controller.errors;
 
-pub fn route(router: anytype) void {
-    indexRoute(router);
+const Auth = say.app.middleware.Auth;
+const AdminAuth = say.app.middleware.AdminAuth;
 
-    adminRoute(router);
+pub fn route(server: anytype, router: anytype) !void {
+    try indexRoute(server, router);
+
+    try adminRoute(server, router);
+
     staticRoute(router);
 
     // Fallback handlers for all unmatched routes (must be last)
-    router.all("/admin/*", errors.notFound, .{});
     router.all("/*", errors.notFound, .{});
 }
 
-pub fn indexRoute(router: anytype) void {
-    router.get("/", index.index.index, .{});
+pub fn indexRoute(server: anytype, router: anytype) !void {
+    var s = server;
+    const auth = try s.middleware(Auth, .{ .debug = config.app.debug });
 
-    router.get("/auth/login", index.auth.login, .{});
-    router.post("/auth/login", index.auth.loginSave, .{});
-    router.get("/auth/logout", index.auth.logout, .{});
+    var group = router.group("/", .{
+        .middlewares = &.{ auth },
+    });
 
-    router.get("/topic/:id", index.topic.view, .{});
-    router.get("/topic/create", index.topic.create, .{});
-    router.post("/topic/create", index.topic.createSave, .{});
-    router.post("/topic/comment/add", index.topic.addComment, .{});
+    group.get("/", index.index.index, .{});
+
+    group.get("/auth/login", index.auth.login, .{});
+    group.post("/auth/login", index.auth.loginSave, .{});
+    group.get("/auth/logout", index.auth.logout, .{});
+
+    group.get("/topic/:id", index.topic.view, .{});
+    group.get("/topic/create", index.topic.create, .{});
+    group.post("/topic/create", index.topic.createSave, .{});
+    group.post("/topic/comment/add", index.topic.addComment, .{});
 }
 
-pub fn adminRoute(router: anytype) void {
-    router.get("/admin/auth/login", admin.auth.login, .{});
-    router.post("/admin/auth/login", admin.auth.loginSave, .{});
-    router.get("/admin/auth/logout", admin.auth.logout, .{});
+pub fn adminRoute(server: anytype, router: anytype) !void {
+    var s = server;
+    const admin_auth = try s.middleware(AdminAuth, .{ .debug = config.app.debug });
+    
+    var group = router.group("/admin", .{
+        .middlewares = &.{ admin_auth },
+    });
 
-    router.get("/admin", admin.index.index, .{});
-    router.get("/admin/index", admin.index.index, .{});
-    router.get("/admin/console", admin.index.console, .{});
+    group.get("/auth/login", admin.auth.login, .{});
+    group.post("/auth/login", admin.auth.loginSave, .{});
+    group.get("/auth/logout", admin.auth.logout, .{});
+
+    group.get("/", admin.index.index, .{});
+    group.get("/index", admin.index.index, .{});
+    group.get("/console", admin.index.console, .{});
 
     // profile
-    router.get("/admin/profile/password", admin.profile.password, .{});
-    router.post("/admin/profile/password", admin.profile.passwordSave, .{});
+    group.get("/profile/password", admin.profile.password, .{});
+    group.post("/profile/password", admin.profile.passwordSave, .{});
 
     // setting
-    router.get("/admin/setting", admin.setting.index, .{});
-    router.post("/admin/setting", admin.setting.save, .{});
+    group.get("/setting", admin.setting.index, .{});
+    group.post("/setting", admin.setting.save, .{});
 
     // user
-    router.get("/admin/user/index", admin.user.index, .{});
-    router.get("/admin/user/list", admin.user.list, .{});
-    router.get("/admin/user/add", admin.user.add, .{});
-    router.post("/admin/user/add", admin.user.addSave, .{});
-    router.get("/admin/user/edit", admin.user.edit, .{});
-    router.post("/admin/user/edit", admin.user.editSave, .{});
-    router.post("/admin/user/del", admin.user.del, .{});
+    group.get("/user/index", admin.user.index, .{});
+    group.get("/user/list", admin.user.list, .{});
+    group.get("/user/add", admin.user.add, .{});
+    group.post("/user/add", admin.user.addSave, .{});
+    group.get("/user/edit", admin.user.edit, .{});
+    group.post("/user/edit", admin.user.editSave, .{});
+    group.post("/user/del", admin.user.del, .{});
 
     // topic
-    router.get("/admin/topic/index", admin.topic.index, .{});
-    router.get("/admin/topic/list", admin.topic.list, .{});
-    router.get("/admin/topic/edit", admin.topic.edit, .{});
-    router.post("/admin/topic/edit", admin.topic.editSave, .{});
-    router.post("/admin/topic/del", admin.topic.del, .{});
+    group.get("/topic/index", admin.topic.index, .{});
+    group.get("/topic/list", admin.topic.list, .{});
+    group.get("/topic/edit", admin.topic.edit, .{});
+    group.post("/topic/edit", admin.topic.editSave, .{});
+    group.post("/topic/del", admin.topic.del, .{});
 
     // comment
-    router.get("/admin/comment/index", admin.comment.index, .{});
-    router.get("/admin/comment/list", admin.comment.list, .{});
-    router.get("/admin/comment/edit", admin.comment.edit, .{});
-    router.post("/admin/comment/edit", admin.comment.editSave, .{});
-    router.post("/admin/comment/del", admin.comment.del, .{});
+    group.get("/comment/index", admin.comment.index, .{});
+    group.get("/comment/list", admin.comment.list, .{});
+    group.get("/comment/edit", admin.comment.edit, .{});
+    group.post("/comment/edit", admin.comment.editSave, .{});
+    group.post("/comment/del", admin.comment.del, .{});
+
+    group.all("/*", errors.notFound, .{});
 }
 
 pub fn staticRoute(router: anytype) void {

@@ -15,7 +15,6 @@ const mime = say.global.mime;
 const App = say.global.App;
 
 const Logger = say.app.middleware.Logger;
-const AdminAuth = say.app.middleware.AdminAuth;
 const route = say.app.router.route;
 
 const opts = @import("say-opts");
@@ -48,13 +47,16 @@ pub fn main(init: std.process.Init) !void {
         .request = config.server.request,
     }, &app);
 
-    var router = try server.router(.{});
+    defer server.deinit();
+    defer server.stop();
 
     const logger = try server.middleware(Logger, .{ .io = io, .query = true, .debug = config.app.debug });
-    const admin_auth = try server.middleware(AdminAuth, .{ .debug = config.app.debug });
-    router.middlewares = &.{ logger, admin_auth };
 
-    route(router);
+    const router = try server.router(.{
+        .middlewares = &.{ logger },
+    });
+
+    try route(server, router);
 
     try showMsg(allocator, io);
 

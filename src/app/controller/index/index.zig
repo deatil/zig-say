@@ -74,8 +74,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         try map.set(res.arena, "comment_page2", .fromInt(@intCast(new_page + 1)));
     }
 
-    var cookies = req.cookies();
-    const loginid = cookies.get("loginid") orelse "";
+    const loginid = req.header("loginid") orelse "";
     try map.set(res.arena, "loginid", .fromString(loginid));
 
     const data: vin.Value = .fromNamespace(&map);
