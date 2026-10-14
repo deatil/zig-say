@@ -13,13 +13,11 @@ const say = @import("say");
 const config = say.global.config;
 const mime = say.global.mime;
 const App = say.global.App;
+const Server = say.global.Server;
 
-const Logger = say.app.middleware.Logger;
 const route = say.app.router.route;
 
 const opts = @import("say-opts");
-
-const Server = httpz.Server(*App);
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -50,13 +48,10 @@ pub fn main(init: std.process.Init) !void {
     defer server.deinit();
     defer server.stop();
 
-    const logger = try server.middleware(Logger, .{ .io = io, .query = true, .debug = config.app.debug });
+    // set global server
+    say.global.server = &server;
 
-    const router = try server.router(.{
-        .middlewares = &.{ logger },
-    });
-
-    try route(server, router);
+    try route();
 
     try showMsg(allocator, io);
 
@@ -64,12 +59,7 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn showMsg(allocator: Allocator, io: Io) !void {
-    var buf: [256]u8 = undefined;
-    var stream: std.Io.Writer = .fixed(&buf);
-    try config.server.address.format(&stream);
-
-    const address_string = stream.buffered();
-
+    const address_string = try allocator.print("{f}", .{config.server.address});
     const time_string = try time.now(io).formatAlloc(allocator, "YYYY-MM-DD HH:mm:ss");
 
     std.debug.print("Zig-say started. \n", .{});

@@ -12,3 +12,5 @@ pub fn notFound(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     res.header("content-type", "text/plain");
     res.body = "Not Found";
 }
+
+

@@ -1,4 +1,5 @@
 const say = @import("say");
+const global = say.global;
 const config = say.global.config;
 
 const controller = @import("controller.zig");
@@ -8,13 +9,26 @@ const admin = controller.admin;
 const static = controller.static;
 const errors = controller.errors;
 
+const Logger = say.app.middleware.Logger;
 const Auth = say.app.middleware.Auth;
 const AdminAuth = say.app.middleware.AdminAuth;
 
-pub fn route(server: anytype, router: anytype) !void {
-    try indexRoute(server, router);
+pub fn route() !void {
+    const io = global.server.io;
 
-    try adminRoute(server, router);
+    const logger = try global.server.middleware(Logger, .{ 
+        .io = io, 
+        .query = true, 
+        .debug = config.app.debug, 
+    });
+
+    var router = try global.server.router(.{
+        .middlewares = &.{ logger },
+    });
+
+    try indexRoute(router);
+
+    try adminRoute(router);
 
     staticRoute(router);
 
@@ -22,9 +36,8 @@ pub fn route(server: anytype, router: anytype) !void {
     router.all("/*", errors.notFound, .{});
 }
 
-pub fn indexRoute(server: anytype, router: anytype) !void {
-    var s = server;
-    const auth = try s.middleware(Auth, .{ .debug = config.app.debug });
+pub fn indexRoute(router: anytype) !void {
+    const auth = try global.server.middleware(Auth, .{ .debug = config.app.debug });
 
     var group = router.group("/", .{
         .middlewares = &.{ auth },
@@ -42,9 +55,8 @@ pub fn indexRoute(server: anytype, router: anytype) !void {
     group.post("/topic/comment/add", index.topic.addComment, .{});
 }
 
-pub fn adminRoute(server: anytype, router: anytype) !void {
-    var s = server;
-    const admin_auth = try s.middleware(AdminAuth, .{ .debug = config.app.debug });
+pub fn adminRoute(router: anytype) !void {
+    const admin_auth = try global.server.middleware(AdminAuth, .{ .debug = config.app.debug });
     
     var group = router.group("/admin", .{
         .middlewares = &.{ admin_auth },
