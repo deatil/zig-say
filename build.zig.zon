@@ -1,7 +1,7 @@
 .{
     .name = .zigsay,
     .fingerprint = 0x2a2010f594d1ab96,
-    .version = "1.1.8",
+    .version = "1.1.9",
     .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .myzql = .{
@@ -13,8 +13,8 @@
             .hash = "httpz-0.0.0-PNVzrPoWCQDh-mpVLlE6Ryjobya3u-oDwOTq0aoQHdms",
         },
         .zigtime = .{
-            .url = "git+https://github.com/deatil/zig-time?ref=main#8bb17ec94acfafcb18c14a25bf9e4c23b9d7b411",
-            .hash = "zig_time-1.3.4-FD_-CkW4AQBOOrEqtEGuqgZypL88bmiyPGk99riOn6Gm",
+            .url = "git+https://github.com/deatil/zig-time?ref=main#7c55421c35e730dff4ea64820b2d1502fea4d52f",
+            .hash = "zig_time-1.3.5-FD_-Crq3AQDi7VV1d-mxzlyBNrGlq9GUFh1DDFSBdVTq",
         },
         .@"zig-vin" = .{
             .url = "git+https://github.com/deatil/zig-vin?ref=main#de565690fdfdd1bf5fabb49c192ce8980c84523d",

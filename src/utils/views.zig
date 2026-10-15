@@ -70,14 +70,16 @@ pub fn fFormatTime(ctx: *vin.FilterCtx, args: vin.FilterArgs) vin.FilterError!vi
     const time_v = args.get(0, "time") orelse return error.BadArgument;
     const fmt_v = args.get(1, "fmt") orelse vin.Value.empty_string;
 
-    const fmt = ctx.toStr(fmt_v) catch "YYYY-MM-DD HH:mm:ss";
-    _ = fmt;
+    var fmt = ctx.toStr(fmt_v) catch "";
+    if (fmt.len == 0) {
+        fmt = "YYYY-MM-DD HH:mm:ss";
+    }
 
     if (time_v != .integer) return error.BadArgument;
     if (time_v.integer < 0) return error.BadArgument;
     const time_int: i64 = @intCast(time_v.integer);
 
-    const time_str = time.Time.fromTimestamp(time_int).formatAlloc(ctx.arena, "YYYY-MM-DD HH:mm:ss") catch return error.BadArgument;
+    const time_str = time.Time.fromTimestamp(time_int).formatAlloc(ctx.arena, fmt) catch return error.BadArgument;
 
     return .{ .string = .{ .bytes = time_str, .safe = false } };
 }
