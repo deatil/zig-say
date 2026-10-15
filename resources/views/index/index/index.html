@@ -1,114 +1,101 @@
-<!DOCTYPE html>
-<html>
+{% extends 'index/common/base' %}
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>{{context.webname}}</title>
-    <link rel="stylesheet icon" href="/static/webnav/img/favicon.ico" />
-    
-    {% include 'index/common/head' %}
+{% block style %}
+<style>
+.topic-page-item {
+    border-bottom: 1px solid #edeeef;
+}
+</style>
+{% endblock %}
 
-    <style>
-    .topic-page-item {
-        border-bottom: 1px solid #edeeef;
-    }
-    </style>
-</head>
+{% block container %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="topic-content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    最新话题
+                </div>
+                <div class="panel-body">
+                    <div class="topic-page-items">
+                        {% for topic in data.topics %}
+                        <div class="media topic-page-item">
+                            <div class="media-body">
+                                <h4 class="media-heading">
+                                    <a href="/topic/{{ topic.id }}">
+                                        {{ topic.title }}
+                                    </a>
+                                </h4>
+                                
+                                <p class="text-muted">
+                                    <span class="topic-datetime">
+                                        <i class="fa fa-clock-o" aria-hidden="true"></i>  
+                                        {{ format_time(topic.add_time) }}
+                                    </span>
 
-<body>
-    {% include 'index/common/top_nav' %}
-
-    <div class="container topic">
-        <div class="row">
-            <div class="col-lg-9">
-                <div class="topic-content">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            最新话题
-                        </div>
-                        <div class="panel-body">
-                            <div class="topic-page-items">
-                                {% for topic in data.topics %}
-                                <div class="media topic-page-item">
-                                    <div class="media-body">
-                                        <h4 class="media-heading">
-                                            <a href="/topic/{{ topic.id }}">
-                                                {{ topic.title }}
-                                            </a>
-                                        </h4>
-                                        
-                                        <p class="text-muted">
-                                            <span class="topic-datetime">
-                                                <i class="fa fa-clock-o" aria-hidden="true"></i>  
-                                                {{ topic.add_time }}
-                                            </span>
-
-                                            <span class="topic-author ml-3">
-                                                <i class="fa fa-user" aria-hidden="true"></i>  
-                                                {{ topic.username }}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                                {% endfor %}
+                                    <span class="topic-author ml-3">
+                                        <i class="fa fa-user" aria-hidden="true"></i>  
+                                        {{ topic.username }}
+                                    </span>
+                                </p>
                             </div>
-                            
-                            {% if data.pages > 1 %} 
-                            <div class="topic-page">
-                                <nav aria-label="Page navigation">
-                                    <ul class="pager">
-                                        {% if (data.page > 1 and data.pages > 1) %}
-                                            <li><a href="/?page={{ data.comment_page1 }}">上一页</a></li>
-                                        {% endif %}
-
-                                        {% if (data.page > 1 and data.pages > 1) == false %}
-                                            <li class="disabled"><a href="#">上一页</a></li>
-                                        {% endif %}
-
-                                        {% if (data.page < data.pages and data.pages > 1) %}
-                                            <li><a href="/?page={{ data.comment_page2 }}">下一页</a></li>
-                                        {% endif %}
-                                        
-                                        {% if (data.page < data.pages and data.pages > 1) == false %}
-                                            <li class="disabled"><a href="#">下一页</a></li>
-                                        {% endif %}
-                                    </ul>
-                                </nav>
-                            </div>
-                            {% endif %}
                         </div>
+                        {% endfor %}
                     </div>
+                    
+                    {% if data.pages > 1 %} 
+                    <div class="topic-page">
+                        <nav aria-label="Page navigation">
+                            <ul class="pager">
+                                {% if (data.page > 1 and data.pages > 1) %}
+                                    <li><a href="/?page={{ data.comment_page1 }}">上一页</a></li>
+                                {% endif %}
+
+                                {% if (data.page > 1 and data.pages > 1) == false %}
+                                    <li class="disabled"><a href="#">上一页</a></li>
+                                {% endif %}
+
+                                {% if (data.page < data.pages and data.pages > 1) %}
+                                    <li><a href="/?page={{ data.comment_page2 }}">下一页</a></li>
+                                {% endif %}
+                                
+                                {% if (data.page < data.pages and data.pages > 1) == false %}
+                                    <li class="disabled"><a href="#">下一页</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-
-            <div class="col-lg-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        快捷操作
-                    </div>
-                    <div class="panel-body text-center">
-                        <a href="/topic/create"
-                            class="btn btn-primary"
-                            style="width: 185px; padding: 13px 0; border-radius:3px"
-                        >
-                            创建话题
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-            
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                快捷操作
+            </div>
+            <div class="panel-body text-center">
+                <a href="/topic/create"
+                    class="btn btn-primary"
+                    style="width: 185px; padding: 13px 0; border-radius:3px"
+                >
+                    创建话题
+                </a>
+            </div>
+        </div>
+
+    </div>
     
-    {% include 'index/common/footer' %}
+</div>
+{% endblock %}
 
-    <script type="text/javascript">
-    $(function() {
-        $(".top-nav-item.top-nav-home").addClass("active");
-    });
-    </script>
-
-</body>
-</html>
+{% block script %}
+<script type="text/javascript" src="/static/topic/js/jquery.min.js"></script>
+<script type="text/javascript">
+$(function() {
+    $(".top-nav-item.top-nav-home").addClass("active");
+});
+</script>
+{% endblock %}

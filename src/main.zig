@@ -10,6 +10,7 @@ const myzql = @import("myzql");
 const Conn = myzql.conn.Conn;
 
 const say = @import("say");
+const views = say.views;
 const config = say.global.config;
 const mime = say.global.mime;
 const App = say.global.App;
@@ -97,6 +98,8 @@ fn initView(alloc: Allocator, io: std.Io) !vin.Environment {
 
     var env = try vin.Environment.initWithLoader(alloc, .{}, dl_ptr.loader());
     env.withIo(io);
+
+    try env.addGlobal("format_time", views.fFormatTime);
 
     return env;
 }

@@ -30,7 +30,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         title: []const u8,
         username: []const u8,
         views: u64,
-        add_time: []const u8,
+        add_time: u32,
     };
 
     var topics = std.array_list.Managed(TopicData).init(res.arena);
@@ -49,7 +49,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
             .title = t,
             .username = u,
             .views = topic.views,
-            .add_time = try time.Time.fromTimestamp(@intCast(topic.add_time)).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
+            .add_time = topic.add_time,
         });
     }
 

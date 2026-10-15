@@ -1,0 +1,82 @@
+{% extends 'index/common/base' %}
+
+{% block title %}我的信息 - {{ super() }}{% endblock %}
+
+{% block container %}
+<div class="row">
+    <div class="col-lg-12">
+        <ol class="breadcrumb">
+            <li><a href="/">首页</a></li>
+            <li class="active">我的信息</li>
+        </ol>
+        
+        <div class="topic-content">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    我的信息
+                </div>
+                <div class="panel-body">
+                    <form action="" method="post" id="data-form">
+                        <div class="form-group">
+                            <label for="profile-cookie">我的饼干</label>
+                            <div>
+                                <input type="text" value="{{data.user.cookie}}" readonly class="form-control" id="profile-cookie" placeholder="">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-username">昵称</label>
+                            <div>
+                                <input type="text" name="username" value="{{data.user.username}}" class="form-control" id="profile-username" placeholder="">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-sign">我的签名</label>
+                            <div>
+                                <textarea class="form-control" id="profile-sign" name="sign" rows="5">{{data.user.sign}}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary px-5 py-2 js-save-btn">提交</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" src="/static/topic/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/topic/js/layer/layer.js"></script>
+<script type="text/javascript">
+$(function() {
+    // 保存
+    $(".js-save-btn").click(function(e) {
+        e.stopPropagation;
+        e.preventDefault;
+
+        var data = $("#data-form").serialize();
+
+        var url = '/profile';
+        $.post(url, data, function(data) {
+            if (data.code == 0) {
+                layer.msg(data.msg);
+                
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                layer.msg(data.msg);
+            }
+        }).fail(function (xhr, status, info) {
+            layer.msg("请求失败");
+        });
+    });
+});
+</script>
+{% endblock %}

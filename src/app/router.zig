@@ -49,6 +49,9 @@ pub fn indexRoute(router: anytype) !void {
     group.post("/auth/login", index.auth.loginSave, .{});
     group.get("/auth/logout", index.auth.logout, .{});
 
+    group.get("/profile", index.profile.index, .{});
+    group.post("/profile", index.profile.save, .{});
+
     group.get("/topic/:id", index.topic.view, .{});
     group.get("/topic/create", index.topic.create, .{});
     group.post("/topic/create", index.topic.createSave, .{});

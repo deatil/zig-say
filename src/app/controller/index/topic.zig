@@ -38,6 +38,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .title = tt,
         .username = un,
         .content = co,
+        .add_time = topic_info.add_time,
     };
 
     try map.set(res.arena, "topic", try vin.valueFrom(res.arena, topic));
@@ -57,7 +58,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     const CommentsData = struct {
         content: []const u8,
         username: []const u8,
-        add_time: []const u8,
+        add_time: u32,
     };
 
     var comments = std.array_list.Managed(CommentsData).init(res.arena);
@@ -74,16 +75,13 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         try comments.append(.{
             .content = c,
             .username = u,
-            .add_time = try zig_time.Time.fromTimestamp(@as(i64, @intCast(comment.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
+            .add_time = comment.add_time,
         });
     }
 
     const comment_list = try comments.toOwnedSlice();
 
     try map.set(res.arena, "comments", try vin.valueFrom(res.arena, comment_list));
-
-    const topic_time = try zig_time.Time.fromTimestamp(@as(i64, @intCast(topic_info.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss");
-    try map.set(res.arena, "topic_time", .fromString(topic_time));
 
     const comment_count = try comment_model.getCountByTopicId(res.arena, app.io, app.db, new_id);
     const comment_pages = try std.math.divCeil(u64, comment_count, 10);

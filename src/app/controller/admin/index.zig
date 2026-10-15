@@ -28,11 +28,11 @@ pub fn console(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     var new_topics = try std.ArrayList(struct {
         title: []const u8,
-        add_time: []const u8,
+        add_time: u32,
     }).initCapacity(res.arena, 0);
     defer new_topics.deinit(res.arena);
 
-    const lists = try topic_model.getList(res.arena, app.io, app.db, .{ .order = "id DESC" });
+    const lists = try topic_model.getNewList(res.arena, app.io, app.db, .{});
     const rows_iter = lists.iter();
     while (try rows_iter.next(app.io)) |row| {
         var topic: topic_model.TopicUser = undefined;
@@ -42,7 +42,7 @@ pub fn console(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
         try new_topics.append(res.arena, .{
             .title = t,
-            .add_time = try time.Time.fromTimestamp(@as(i64, @intCast(topic.add_time))).formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss"),
+            .add_time = topic.add_time,
         });
     }
 
