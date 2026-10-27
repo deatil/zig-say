@@ -66,7 +66,7 @@ pub fn errorView(app: *App, res: *httpz.Response, msg: []const u8, url: []const 
     try view(app, res, "index/error/index", data);
 }
 
-pub fn fFormatTime(ctx: *vin.FilterCtx, args: vin.FilterArgs) vin.FilterError!vin.Value {
+pub fn fFormatTime(ctx: *vin.Ctx, args: vin.Args) vin.ArgsError!vin.Value {
     const time_v = args.get(0, "time") orelse return error.BadArgument;
     const fmt_v = args.get(1, "fmt") orelse vin.Value.empty_string;
 
