@@ -2,7 +2,7 @@ const say = @import("say");
 const global = say.global;
 const config = say.global.config;
 
-const controller = @import("controller.zig");
+const controller = say.app.controller;
 
 const index = controller.index;
 const admin = controller.admin;
