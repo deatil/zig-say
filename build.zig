@@ -35,10 +35,10 @@ pub fn build(b: *std.Build) !void {
 
     const io = b.graph.io;
     const path = &.{ "resources", "views" };
-    const tmp_path = try templatesPaths(b.allocator, io, path);
+    const tpl_path = try templatesPaths(b.allocator, io, path);
 
     const opts = b.addOptions();
-    opts.addOption([]const u8, "tmp_path", tmp_path);
+    opts.addOption([]const u8, "tpl_path", tpl_path);
     exe.root_module.addImport("say-opts", opts.createModule());
     say_mod.addImport("say-opts", opts.createModule());
 

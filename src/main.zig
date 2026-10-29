@@ -89,7 +89,7 @@ fn initView(alloc: Allocator, io: std.Io) !vin.Environment {
     var dl_ptr = try alloc.create(vin.DirLoader);
     dl_ptr.* = .{
         .io = io,
-        .root = try std.Io.Dir.openDirAbsolute(io, opts.tmp_path, .{}),
+        .root = try std.Io.Dir.openDirAbsolute(io, opts.tpl_path, .{}),
         .options = .{ 
             .suffix = ".html", 
             .max_bytes = 1 << 20,
