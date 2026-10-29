@@ -21,3 +21,4 @@ pub const App = struct {
 pub const Server = httpz.Server(*App);
 
 pub var server: *Server = undefined;
+pub var db: *Conn = undefined;

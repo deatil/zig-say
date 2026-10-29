@@ -51,6 +51,7 @@ pub fn main(init: std.process.Init) !void {
 
     // set global server
     say.global.server = &server;
+    say.global.db = &db;
 
     try route();
 
