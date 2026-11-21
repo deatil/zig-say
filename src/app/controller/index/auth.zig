@@ -13,8 +13,6 @@ const App = say.global.App;
 const user_model = say.app.model.user;
 
 pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
-    var map: vin.Namespace = .{};
-
     const loginid = req.header("loginid") orelse "";
     if (loginid.len > 0) {
         res.status = 303;
@@ -22,9 +20,10 @@ pub fn login(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
     
-    try map.set(res.arena, "loginid", .fromString(loginid));
+    var map = try vin.valueDict(res.arena);
+    try map.set("loginid", .fromString(loginid));
 
-    const data: vin.Value = .fromNamespace(&map);
+    const data = try map.asValue();
 
     try views.view(app, res, "index/auth/login", data);
 }

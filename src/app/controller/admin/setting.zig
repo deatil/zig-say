@@ -12,7 +12,7 @@ const setting_model = say.app.model.setting;
 pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
     _ = req;
 
-    var map: vin.value.Namespace = .{};
+    var map = try vin.valueDict(res.arena);
 
     // Load all settings from database
     const settings = try setting_model.getList(res.arena, app.io, app.db);
@@ -23,10 +23,10 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
         const k = try res.arena.dupe(u8, setting.name);
         const v = try res.arena.dupe(u8, setting.value);
-        try map.set(res.arena, k, .fromString(v));
+        try map.set(k, .fromString(v));
     }
 
-    const data: vin.Value = .fromNamespace(&map);
+    const data = try map.asValue();
 
     try views.view(app, res, "admin/setting/index", data);
 }

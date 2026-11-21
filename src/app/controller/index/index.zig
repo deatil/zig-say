@@ -23,7 +23,7 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .status = 1,
     });
 
-    var map: vin.value.Namespace = .{};
+    var map = try vin.valueDict(res.arena);
 
     const TopicData = struct {
         id: u32,
@@ -55,29 +55,29 @@ pub fn index(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     const topic_list = try topics.toOwnedSlice();
 
-    try map.set(res.arena, "topics", try vin.valueFrom(res.arena, topic_list));
+    try map.set("topics", try vin.valueFrom(res.arena, topic_list));
 
     const topic_count = try topic_model.getCount(res.arena, app.io, app.db, .{
         .status = 1,
         .order = "id DESC",
     });
 
-    try map.set(res.arena, "page", .fromInt(@intCast(new_page)));
+    try map.set("page", .fromInt(@intCast(new_page)));
 
     const pages = try std.math.divCeil(u64, topic_count, 10);
-    try map.set(res.arena, "pages", .fromInt(@intCast(pages)));
+    try map.set("pages", .fromInt(@intCast(pages)));
 
     if (new_page > 1 and pages > 1) {
-        try map.set(res.arena, "comment_page1", .fromInt(@intCast(new_page - 1)));
+        try map.set("comment_page1", .fromInt(@intCast(new_page - 1)));
     }
     if (new_page < pages and pages > 1) {
-        try map.set(res.arena, "comment_page2", .fromInt(@intCast(new_page + 1)));
+        try map.set("comment_page2", .fromInt(@intCast(new_page + 1)));
     }
 
     const loginid = req.header("loginid") orelse "";
-    try map.set(res.arena, "loginid", .fromString(loginid));
+    try map.set("loginid", .fromString(loginid));
 
-    const data: vin.Value = .fromNamespace(&map);
+    const data = try map.asValue();
 
     try views.view(app, res, "index/index/index", data);
 }

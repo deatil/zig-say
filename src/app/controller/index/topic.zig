@@ -21,7 +21,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         return;
     }
 
-    var map: vin.value.Namespace = .{};
+    var map = try vin.valueDict(res.arena);
 
     const topic_info = topic_model.getInfoById(res.arena, app.io, app.db, new_id) catch topic_model.TopicUser{};
     if (topic_info.id == 0) {
@@ -41,7 +41,7 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
         .add_time = topic_info.add_time,
     };
 
-    try map.set(res.arena, "topic", try vin.valueFrom(res.arena, topic));
+    try map.set("topic", try vin.valueFrom(res.arena, topic));
 
     const query = try req.query();
 
@@ -81,26 +81,26 @@ pub fn view(app: *App, req: *httpz.Request, res: *httpz.Response) !void {
 
     const comment_list = try comments.toOwnedSlice();
 
-    try map.set(res.arena, "comments", try vin.valueFrom(res.arena, comment_list));
+    try map.set("comments", try vin.valueFrom(res.arena, comment_list));
 
     const comment_count = try comment_model.getCountByTopicId(res.arena, app.io, app.db, new_id);
     const comment_pages = try std.math.divCeil(u64, comment_count, 10);
 
-    try map.set(res.arena, "comment_page", .fromInt(new_page));
-    try map.set(res.arena, "comment_pages", .fromInt(@intCast(comment_pages)));
-    try map.set(res.arena, "comment_count", .fromInt(@intCast(comment_count)));
+    try map.set("comment_page", .fromInt(new_page));
+    try map.set("comment_pages", .fromInt(@intCast(comment_pages)));
+    try map.set("comment_count", .fromInt(@intCast(comment_count)));
 
     if (new_page > 1 and comment_pages > 1) {
-        try map.set(res.arena, "comment_page1", .fromInt(new_page - 1));
+        try map.set("comment_page1", .fromInt(new_page - 1));
     }
     if (new_page < comment_pages and comment_pages > 1) {
-        try map.set(res.arena, "comment_page2", .fromInt(new_page + 1));
+        try map.set("comment_page2", .fromInt(new_page + 1));
     }
 
     const loginid = req.header("loginid") orelse "";
-    try map.set(res.arena, "loginid", .fromString(loginid));
+    try map.set("loginid", .fromString(loginid));
 
-    const data: vin.Value = .fromNamespace(&map);
+    const data = try map.asValue();
 
     try views.view(app, res, "index/topic/view", data);
 }
