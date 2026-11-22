@@ -1,7 +1,7 @@
 .{
     .name = .zigsay,
     .fingerprint = 0x2a2010f594d1ab96,
-    .version = "1.1.11",
+    .version = "1.1.12",
     .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .myzql = .{
@@ -17,8 +17,8 @@
             .hash = "zig_time-1.3.5-FD_-Crq3AQDi7VV1d-mxzlyBNrGlq9GUFh1DDFSBdVTq",
         },
         .@"zig-vin" = .{
-            .url = "git+https://github.com/deatil/zig-vin?ref=v0.1.16#14aa744933cc45f1c47cf5cc556273ac46cb6dbe",
-            .hash = "zig_vin-0.1.16-Lkc0nD7wCQC1Kg0O4lw155iM57JGWIBIiHSbptjfHQKd",
+            .url = "git+https://github.com/deatil/zig-vin?ref=v0.1.18#06da3f4dc9c30b0308c0308166a137ff85632585",
+            .hash = "zig_vin-0.1.18-Lkc0nLEvCgBVmrlptdT_vAiJpsgGB0OtZnW1AnvIEhVD",
         },
     },
     .paths = .{
