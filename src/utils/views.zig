@@ -22,17 +22,17 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
         },
     });
 
+    var env = app.view;
+
     var diag: vin.Diagnostic = .{};
-    const output = app.view.render(tpl, ctx, &diag) catch |err| {
-        var msg = try resp.arena.dupe(u8, "View Not Found");
+    env.withDiag(&diag);
+
+    const output = env.render(tpl, ctx) catch {
+        var msg = try resp.arena.dupe(u8, "File Not Found");
 
         const debug = config.app.debug;
         if (debug) {
-            if (diag.len > 0 and diag.len < 512) {
-                msg = try resp.arena.print("[View] {f}", .{diag});
-            } else {
-                msg = try resp.arena.print("[View] {s}", .{@errorName(err)});
-            }
+            msg = try resp.arena.print("[View] {f}", .{diag});
         }
 
         resp.status = 200;

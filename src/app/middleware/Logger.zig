@@ -49,5 +49,11 @@ pub fn execute(self: *const Logger, req: *httpz.Request, res: *httpz.Response, e
 
     // Then capture the status after handler completes
     const elapsed = time.now(self.io).microTimestamp() - start;
-    std.log.info("[{s}]\t{s}\t{s}{s}{s}\t{d}\t{d}us", .{ now_datetime, @tagName(req.method), req.url.path, if (self.query and req.url.query.len > 0) "?" else "", if (self.query) req.url.query else "", res.status, elapsed });
+    std.log.info("[{s}] {d} {s}\t{s}{s}{s}\t{d}us", .{ 
+        now_datetime, res.status, 
+        @tagName(req.method), req.url.path, 
+        if (self.query and req.url.query.len > 0) "?" else "", 
+        if (self.query) req.url.query else "", 
+        elapsed,
+    });
 }
