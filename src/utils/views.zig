@@ -24,15 +24,12 @@ pub fn view(app: *App, resp: *httpz.Response, tpl: []const u8, data: anytype) !v
 
     var env = app.view;
 
-    var diag: vin.Diagnostic = .{};
-    env.withDiag(&diag);
-
     const output = env.render(tpl, ctx) catch {
         var msg = try resp.arena.dupe(u8, "File Not Found");
 
         const debug = config.app.debug;
         if (debug) {
-            msg = try resp.arena.print("[View] {f}", .{diag});
+            msg = try resp.arena.print("[View] {s}", .{try env.getError()});
         }
 
         resp.status = 200;

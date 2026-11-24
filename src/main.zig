@@ -102,5 +102,8 @@ fn initView(alloc: Allocator, io: std.Io) !vin.Environment {
 
     try env.addGlobal("format_time", views.fFormatTime);
 
+    var diag: vin.Diagnostic = .{};
+    env.withDiag(&diag);
+
     return env;
 }
